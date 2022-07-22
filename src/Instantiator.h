@@ -35,7 +35,7 @@
 #include "IdFactory.h"
 #include "OBWriter.h"
 #include "bloom_filter.hpp"
-
+#include "OTFValidators.h"
 
 
 // threads require a struct to pass multiple arguments
@@ -127,8 +127,10 @@ class Instantiator
     // The molecule to validate
     std::string validation_smi;
 
+    OTFValidators* on_the_fly_validators; 
+
   public:
-    Instantiator(OBWriter* obWriter = 0, std::ostream& out = std::cout);
+    Instantiator(OBWriter* obWriter = 0, std::ostream& out = std::cout, OTFValidators* validators = nullptr);
 
     ~Instantiator()
     {
