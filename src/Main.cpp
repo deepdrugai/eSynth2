@@ -275,14 +275,14 @@ bool readInputFiles(const std::vector<std::string>& infiles)
 
 int main(int argc, const char** argv)
 {
-	if (argc < 2)
-	{
-		CommandLineParser::usage();
-		return 1;
-	}
+    if (argc < 2)
+	  {
+	      CommandLineParser::usage();
+	  	  return 1;
+	  }
 
     //
-	// The input facade:
+	  // The input facade:
     // (1) identifies and set Options in the static Options class
     // (2) Identifies legitimate, existing input fragment files 
     InputFacade inf { argc, argv };
@@ -290,17 +290,17 @@ int main(int argc, const char** argv)
     // If usage or versioning is requested.
     if (!inf.parse()) return 0;
 
-	//
-	// Remove log files from a previous run.
-	//
-	// v1.0
-	//
-	// system("rm molecules.smi");
-	// system("rm synth_log_initial_fragments_logfile.txt");
-	// system("rm ScrubAndExportSMI_logfile.txt");
-	// system("rm Validation_logfile.txt");
+    //
+    // Remove log files from a previous run.
+    //
+    // v1.0
+    //
+    // system("rm molecules.smi");
+    // system("rm synth_log_initial_fragments_logfile.txt");
+    // system("rm ScrubAndExportSMI_logfile.txt");
+    // system("rm Validation_logfile.txt");
 
-	if (!readInputFiles(inf.getFiles())) return 1;
+    if (!readInputFiles(inf.getFiles())) return 1;
 
 	//
 	// Bypass synthesis for acquiring information about the input fragments.

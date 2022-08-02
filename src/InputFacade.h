@@ -74,6 +74,12 @@ class InputFacade
         // Our final list of input fragment files
         _filteredFiles = nameAnalyzer.getValidFiles();
 
+        if (_filteredFiles.empty())
+        {
+            std::cerr << "No valid input files were found." << std::endl;
+            return false;
+        }
+
         fileEmitter("The following fragment files conform to eSynth requirements and will be parsed:",
                     _filteredFiles);
 

@@ -185,11 +185,14 @@ class CommandLineParser
         //
         // Output files
         //
-        std::cout << "The following files were specified:" << std::endl;
-
-        for (auto const& file : _files)
+        if (!_files.empty())
         {
-            std::cout << '\t' << file << std::endl;
+            std::cout << "The following files were specified:" << std::endl;
+
+            for (auto const& file : _files)
+            {
+                std::cout << '\t' << file << std::endl;
+            }
         }
     }
 
