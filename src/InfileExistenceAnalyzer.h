@@ -17,7 +17,7 @@
 
  /*
   * eSynth 2.0
-  * Author: C. Alvin 7/27/2022
+  * Author: C. Alvin 8/2022
   */
 
 #ifndef _INFILE_EXISTENCE_ANALYZER_GUARD
@@ -25,9 +25,6 @@
 
 #include <string>
 #include <vector>
-
-// Requires C++-17
-#include <filesystem>
 
 #include "FileUtilities.h"
 

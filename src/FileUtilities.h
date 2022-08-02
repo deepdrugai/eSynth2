@@ -23,13 +23,24 @@
 #ifndef _FILE_UTILITIES_GUARD
 #define _FILE_UTILITIES_GUARD 1
 
+// TODO: Guards around selecting C++ standard
+
+// #ifdef __cplusplus
+
+// Requires C++-14
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+
 // Requires C++-17
-#include <filesystem>
+//#include <filesystem>
+//namespace fs = std::filesystem;
 
 #include <algorithm>
 #include <string>
 
 #include "Utilities.h"
+
 
 //
 // This class bifurcates the input list into valid / invalid files based on existence.
@@ -45,40 +56,8 @@ class FileUtilities
      */
     static bool exists(const std::string& path)
     {
-        // Requires C++-17:
-        return std::filesystem::exists(path);
+        return fs::exists(path);
     }
-
-    /*
-     * Given a file path, extract the file name
-     */
-    static std::string getFileFromPath(const std::string& p)
-    {
-        // Requires C++-17:
-        std::filesystem::path thepath = p;
-
-        return thepath.filename().string();
-    }
-
-    //static std::string getLastDirectoryFromPath(const std::string& path)
-    //{
-    //    // Acquire the file name by removing all path elements: preceding '/', '\'
-    //    std::string prefix = "";
-    //    std::string fileName = "";
-    //    if (path.find("/") != std::string::npos)
-    //    {
-    //        Utilities::splitLast(path, prefix, fileName, "/");
-    //        return fileName;
-    //    }
-    //    if (path.find("\\") != std::string::npos)
-    //    {
-    //        Utilities::splitLast(path, prefix, fileName, "\\");
-    //        return fileName;
-    //    }
-
-    //    // No paths specified; default to the input file name
-    //    return path;
-    //}
 
     /*
      *
@@ -98,9 +77,9 @@ class FileUtilities
         // e.g.   /var/tmp  -> tmp
         // e.g.   /var/tmp/ -> tmp
         //
-        std::filesystem::path p{ name };
-        std::filesystem::path fName;
-        std::filesystem::path parentPath;
+        fs::path p{ name };
+        fs::path fName;
+        fs::path parentPath;
 
         // Do we have a raw directory name given (not  xyxy/ , but q/w/e/r/hereiam)
         if (p.has_filename())

@@ -21,11 +21,11 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <iomanip> // std::setw
 #include <cstring>
 #include <cstdlib>
 #include <map>
 
-#include "FileUtilities.h"
 #include "Options.h"
 #include "Utilities.h"
 #include "Constants.h"
@@ -175,10 +175,10 @@ class CommandLineParser
 
         unsigned maxW = maxKeyWidth(args);
 
-        for (auto const& [key, value] : args)
+        for (auto it = args.begin(); it != args.end(); it++)
         {
-            std::cout << '\t' << std::left << std::setw(maxW + 4) << ("-" + key)
-                      << (value != "" ? " : " + value : "") << std::endl;
+            std::cout << '\t' << std::left << std::setw(maxW + 4) << ("-" + it->first)
+                      << (it->second != "" ? " : " + it->second : "") << std::endl;
         }
 
         //
@@ -257,9 +257,9 @@ class CommandLineParser
         //
         // Handle the rest of the arguments
         //
-        for (const auto & [arg, value] : _userDefined)
+        for (auto it = _userDefined.begin(); it != _userDefined.end(); it++)
         {
-            processArgument(arg, value);
+            processArgument(it->first, it->second);
         }
 
         //
@@ -385,24 +385,9 @@ class CommandLineParser
     //
 
     /*
-     * @return: maximum width required for the keys; ensures even columnar output
-     */
-    template <typename T>
-    static unsigned maxKeyWidth(const std::map<T, T>& m)
-    {
-        unsigned max = 0;
-        for (auto const& [key, value] : m)
-        {
-            max = max > key.size() ? max : key.size();
-        }
-        return max;
-    }
-
-  public:
-    /*
      * Usage information; output of the possible options
      */
-    static void usage()
+    void usage() const
     {
         std::cout << Constants::ESYNTH_EXECUTABLE
             << " may be executed with the following options:"
@@ -410,18 +395,30 @@ class CommandLineParser
 
         unsigned maxW = maxKeyWidth(Constants::USAGE_MAP);
 
-        for (auto const& [key, value] : Constants::USAGE_MAP)
+        for (auto it = Constants::USAGE_MAP.begin(); it != Constants::USAGE_MAP.end(); it++)
         {
-            std::cout << std::left << std::setw(maxW + 4) << ("-" + key) << value << std::endl;
+            std::cout << std::left << std::setw(maxW + 4) << ("-" + it->first) << it->second << std::endl;
         }
     }
 
-
+    /*
+     * @return: maximum width required for the keys; ensures even columnar output
+     */
+    template <typename T>
+    static unsigned maxKeyWidth(const std::map<T, T>& m)
+    {
+        unsigned max = 0;
+        for (auto it = m.begin(); it != m.end(); it++)
+        {
+            max = max > it->first.size() ? max : it->first.size();
+        }
+        return max;
+    }
 
     /*
      * Version information
      */
-    static void version()
+    void version() const
     {
         std::cout << Constants::ESYNTH_VERSION << std::endl;
     }

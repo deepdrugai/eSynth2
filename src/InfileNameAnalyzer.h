@@ -26,7 +26,19 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <filesystem> // C++-17
+
+  // TODO: Guards around selecting C++ standard
+
+  // #ifdef __cplusplus
+
+  // Requires C++-14
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+
+// Requires C++-17
+//#include <filesystem>
+//namespace fs = std::filesystem;
 
 #include "InfileExistenceAnalyzer.h"
 
@@ -60,7 +72,7 @@ class InfileNameAnalyzer
     {
         for (std::vector<std::string>::const_iterator it = names.begin(); it != names.end(); it++)
         {
-            std::filesystem::path p = *it;
+            fs::path p = *it;
 
             if (isValidFileName(p)) _valid.push_back(*it);
             else _invalid.push_back(*it);
@@ -84,7 +96,7 @@ public:
      * 
      * Assumes input of a file name (no path information)
      */
-    static bool isValidFileName(const std::filesystem::path& p)
+    static bool isValidFileName(const fs::path& p)
     {
         if (p.empty())
         {
@@ -123,7 +135,7 @@ public:
     //
     // (1) Valid Extenion:    sdf
     //
-    static bool hasValidExtension(std::filesystem::path p)
+    static bool hasValidExtension(fs::path p)
     {
         // Check existence before comparing for valid extension
         if (!p.has_extension()) return false;
