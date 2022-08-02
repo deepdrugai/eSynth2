@@ -49,8 +49,8 @@ DEPS = EdgeAggregator.h \
 	OBWriter.h \
 	Options.h \
 	Validator.h \
-  OTFValidator.h \
-  OTFValidators.h \
+	OTFValidator.h \
+	OTFValidators.h \
 	obgen.h \
 	Thread_Pool.h \
 	IdFactory.h \
@@ -88,8 +88,8 @@ _OBJ = Atom.o \
 	AtomT.o \
 	OBWriter.o \
 	Validator.o \
-  OTFValidator.o \
-  OTFValidators.o \
+	OTFValidator.o \
+	OTFValidators.o \
 	Options.o \
 	IdFactory.o \
 	obgen.o \

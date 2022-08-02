@@ -42,7 +42,7 @@ OTFValidator::OTFValidator(std::string& validInfo, std::string& fName) :
 {
 	// Initialize all 1000 elements to 0 in memory 
 	//memset(_TCAnalysis, 0, 1000);
-	for (int i = 0; i <= 1000; i++)
+	for (int i = 0; i < 1000; i++)
 		_TCAnalysis[i] = 0;
 
 	// Get the validation fingerprint 

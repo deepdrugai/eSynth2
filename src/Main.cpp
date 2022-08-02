@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <cctype>
 #include <mcheck.h>
+#include <new> // bad_array_new_length exception
 
 //
 // Open Babel
@@ -72,10 +73,11 @@
 //
 // Global set of linkers and bricks read from the input files.
 //
-std::vector<Linker*> linkers;
-std::vector<Brick*> bricks;
+std::vector<Linker*> linkers{};
+std::vector<Brick*> bricks{};
 
-void Cleanup(std::vector<Linker*>& linkers, std::vector<Brick*>& bricks);
+void Cleanup(const std::vector<Linker*>& linkers,
+             const std::vector<Brick*>& bricks);
 
 //
 // Split the molecule into atoms/bonds as well as connectivity information
@@ -206,7 +208,8 @@ void readMoleculeFile(const char* fileName)
 
 		// Create and parse using Open Babel
 		OpenBabel::OBMol* mol = new OpenBabel::OBMol();
-		bool notAtEnd = obConversion.ReadString(mol, prefix);
+		//bool notAtEnd = 
+		obConversion.ReadString(mol, prefix);
 
 		// Assign all needed data to the molecule (comment data)
 		Molecule* local = createLocalMolecule(mol,
@@ -246,86 +249,58 @@ void readMoleculeFile(const char* fileName)
 //
 // Parse each input data files
 //
-bool readInputFiles(const Options& options)
+bool readInputFiles(const std::vector<std::string>& infiles)
 {
-	for (std::vector<std::string>::const_iterator it = options.inFiles.begin();
-		it != options.inFiles.end(); it++)
+	//
+	// CTA: This will need to change for v2.0
+	//
+	for (auto const& infile : infiles)
 	{
-		char charPrefix = tolower((*it)[0]);
-		if (charPrefix != 'l' && charPrefix != 'r' && charPrefix != 'b')
-		{
-			cerr << "Unexpected file prefix: \'" << (*it)[0]
-				<< "\' with file " << *it << endl;
-			return false;
-		}
+		// char charPrefix = tolower((*it)[0]);
+		// if (charPrefix != 'l' && charPrefix != 'r' && charPrefix != 'b')
+		// {
+			// cerr << "Unexpected file prefix: \'" << (*it)[0]
+ 				 // << "\' with file " << *it << endl;
+			// return false;
+		// }
 
-		readMoleculeFile((*it).c_str());
+		readMoleculeFile(infile.c_str());
 	}
 
 	return true;
 }
 
-int main(int argc, char** argv)
+#include "InputFacade.h"
+#include "CommandLineParser.h"
+
+int main(int argc, const char** argv)
 {
 	if (argc < 2)
 	{
-		std::cerr << "Usage: <program> [SDF-file-list] -o <output-file> -v <validation-file>"
-			<< " -pool <#obgen-threads>" << std::endl;
+		CommandLineParser::usage();
 		return 1;
 	}
+
+    //
+	// The input facade:
+    // (1) identifies and set Options in the static Options class
+    // (2) Identifies legitimate, existing input fragment files 
+    InputFacade inf { argc, argv };
+
+    // If usage or versioning is requested.
+    if (!inf.parse()) return 0;
 
 	//
 	// Remove log files from a previous run.
 	//
-
+	// v1.0
+	//
 	// system("rm molecules.smi");
 	// system("rm synth_log_initial_fragments_logfile.txt");
 	// system("rm ScrubAndExportSMI_logfile.txt");
 	// system("rm Validation_logfile.txt");
 
-	//
-	// Global options object.
-	//
-	Options options(argc, argv);
-	if (!options.parseCommandLine())
-	{
-		std::cerr << "Command-line parsing failed; exiting." << std::endl;
-		return 1;
-	}
-
-	/*
-	if (!options.AnalyzeEnvironment())
-	{
-	std::cerr << "Environment not set properly; exiting." << std::endl;
-	return 1;
-	}
-	*/
-
-	// 
-	// Output command-line option information
-	//
-	if (Options::THREADED) std::cout << "Threaded execution." << std::endl;
-	else if (Options::SERIAL) std::cout << "Serial execution." << std::endl;
-	else
-	{
-		std::cerr << "Neither serial nor threaded specified; exiting." << std::endl;
-		return 1;
-	}
-
-	// std::cout << "SMI Comparison Level: " << Options::SMI_LEVEL_BOUND << std::endl;
-	std::cout << "Probability Filtration Level: "
-		<< Options::PROBABILITY_PRUNE_LEVEL_START << std::endl;
-
-	// Printing the specified Tanimoto value to the user.
-	// std::cerr << "Tanimoto Coefficient Threshold Specified: "
-	//           << Options::TANIMOTO << std::endl;
-	if (!Options::SMI_ONLY)
-	{
-		std::cerr << "OBGEN output thread pool size: "
-			<< Options::OBGEN_THREAD_POOL_SIZE << std::endl;
-	}
-
-	if (!readInputFiles(options)) return 1;
+	if (!readInputFiles(inf.getFiles())) return 1;
 
 	//
 	// Bypass synthesis for acquiring information about the input fragments.
@@ -339,27 +314,28 @@ int main(int argc, char** argv)
 
 	// Output object for the nodes of the hypergraph.
 	OBWriter* writer = new OBWriter(Options::OBGEN_THREAD_POOL_SIZE);
-	if (Options::SMI_ONLY) writer->InitializeFile(options.outFileSMI);
-	else writer->InitializeFile(options.outFile);
+	if (Options::SMI_ONLY) writer->InitializeFile(Options::OUTPUT_SMI_FILE);
+	else writer->InitializeFile(Options::OUTPUT_FILE);
+
 	//if (options.validationFile == "") OBWriter::TurnValidationOff();
 	// else, create an openbabel molecule from the validation file 
 
 	// Create On_the_Fly_Validators
-	OTFValidators validators(options.validationFile);
+	OTFValidators validators(Options::VALIDATION_FILE);
 
 	// The main object that performs synthesis.
 	// CHANGE: include validator object  
 	Instantiator instantiator(writer, cout, &validators);
 
-  // write the result of tc analysis once after validate all molecules 
+    // write the result of tc analysis once after validate all molecules 
 	validators.writeToFiles();
 
 	// Instantiation build the hypergraph; this is the main data structure for the
 	// resultant molecules.
 	// Also creates the hypergraph using threaded or non-threaded techniques.
-	MoleculeHashHypergraph* graph = 0;
-	if (Options::THREADED) graph = instantiator.ThreadedInstantiate(linkers, bricks);
-	else if (Options::SERIAL) graph = instantiator.SerialInstantiate(linkers, bricks);
+	// MoleculeHashHypergraph* graph = 0;
+	if (Options::THREADED) instantiator.ThreadedInstantiate(linkers, bricks);
+	else if (Options::SERIAL) instantiator.SerialInstantiate(linkers, bricks);
 
 	// std::cout << "Hypergraph contains (" << graph->currentSize()
 	//           << ", " << graph->nonKilledSize()<< ") nodes" << std::endl;
@@ -369,7 +345,7 @@ int main(int argc, char** argv)
 	unsigned exc = instantiator.getExcluded();
 
 	std::cout << "Excluded (" << exc << "); Included (" << inc << ") \t Excluded: "
-		<< ((double)(exc) / (exc + inc)) << "\%" << std::endl;
+              << ((double)(exc) / (exc + inc)) << "\%" << std::endl;
 
 	// External output will always have 0 molecules; uncomment for internal usage and
 	// accurate numbers.
@@ -394,7 +370,7 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-void Cleanup(std::vector<Linker*>& linkers, std::vector<Brick*>& bricks)
+void Cleanup(const std::vector<Linker*>& linkers, const std::vector<Brick*>& bricks)
 {
 	for (unsigned ell = 0; ell < linkers.size(); ell++)
 	{

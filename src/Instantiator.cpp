@@ -106,25 +106,25 @@ Instantiator::Instantiator(OBWriter* obWriter, std::ostream& out, OTFValidators*
 	on_the_fly_validators(OTFvalidators)
 
 {
-	graph = new MoleculeHashHypergraph(HIERARCHICAL_LEVEL_BOUND + 1);
+	graph = new MoleculeHashHypergraph(Options::USER_DEFINED_LEVEL_BOUND + 1);
 
 	// The hypergraph lock
 	pthread_mutex_init(&graph_lock, NULL);
 
 	// The threads and locks for the producer-consumer containers.
-	level_queues = new std::queue<Molecule*>[HIERARCHICAL_LEVEL_BOUND + 1];
-	moleculeLevelCount = new int[HIERARCHICAL_LEVEL_BOUND + 1];
+	level_queues = new std::queue<Molecule*>[Options::USER_DEFINED_LEVEL_BOUND + 1];
+	moleculeLevelCount = new int[Options::USER_DEFINED_LEVEL_BOUND + 1];
 
 	// Create the bloom filters
 
 	if (Options::THREADED)
 	{
-		queue_locks = new pthread_mutex_t[HIERARCHICAL_LEVEL_BOUND + 1];
-		queue_threads = new pthread_t[HIERARCHICAL_LEVEL_BOUND + 1];
-		completed_level = new bool[HIERARCHICAL_LEVEL_BOUND + 1];
-		arg_pointer = new Instantiator_ProcessLevel_Thread_Args[HIERARCHICAL_LEVEL_BOUND + 1];
+		queue_locks = new pthread_mutex_t[Options::USER_DEFINED_LEVEL_BOUND + 1];
+		queue_threads = new pthread_t[Options::USER_DEFINED_LEVEL_BOUND + 1];
+		completed_level = new bool[Options::USER_DEFINED_LEVEL_BOUND + 1];
+		arg_pointer = new Instantiator_ProcessLevel_Thread_Args[Options::USER_DEFINED_LEVEL_BOUND + 1];
 	}
-	for (unsigned m = 1; m <= HIERARCHICAL_LEVEL_BOUND; m++)
+	for (unsigned m = 1; m <= Options::USER_DEFINED_LEVEL_BOUND; m++)
 	{
 		if (Options::THREADED)
 		{
@@ -158,7 +158,7 @@ void Instantiator::InitOverallFilter()
 	// How many elements roughly do we expect to insert?
 	// Count the approximated level sizes
 	unsigned long long approx_count = 0;
-	for (unsigned m = 0; m <= HIERARCHICAL_LEVEL_BOUND + 1; m++)
+	for (unsigned m = 0; m <= Options::USER_DEFINED_LEVEL_BOUND + 1; m++)
 	{
 		approx_count += LEVEL_SIZES[m];
 	}
@@ -204,7 +204,7 @@ void Instantiator::InitLevelFilters()
 	//
 	// Create the level filters
 	//
-	for (unsigned m = 0; m <= HIERARCHICAL_LEVEL_BOUND + 1; m++)
+	for (unsigned m = 0; m <= Options::USER_DEFINED_LEVEL_BOUND + 1; m++)
 	{
 		if (LEVEL_SIZES[m] == 0)
 		{
@@ -264,7 +264,7 @@ MoleculeHashHypergraph* Instantiator::SerialInstantiate(std::vector<Linker*>& li
 	//
 	// Kill all levels
 	//
-	for (unsigned m = 2; m <= HIERARCHICAL_LEVEL_BOUND; m++)
+	for (unsigned m = 2; m <= Options::USER_DEFINED_LEVEL_BOUND; m++)
 	{
 		// Kill this level in the hypergraph
 		graph->killLevel(m);
@@ -275,7 +275,7 @@ MoleculeHashHypergraph* Instantiator::SerialInstantiate(std::vector<Linker*>& li
 	}
 
 	std::cout << "Level\t" << "# Molecules" << std::endl;
-	for (unsigned m = 1; m <= HIERARCHICAL_LEVEL_BOUND; m++)
+	for (unsigned m = 1; m <= Options::USER_DEFINED_LEVEL_BOUND; m++)
 	{
 		std::cout << m << "\t" << moleculeLevelCount[m] << std::endl;
 	}
@@ -302,7 +302,7 @@ void Instantiator::SerialInstantiateHelper(unsigned level,
 	//
 	// We max out at a specific level
 	//
-	if (level >= HIERARCHICAL_LEVEL_BOUND)
+	if (level >= Options::USER_DEFINED_LEVEL_BOUND)
 	{
 		// Kill the contents of the queue
 		while (!level_queues[level].empty())
@@ -348,7 +348,7 @@ void Instantiator::SerialInstantiateHelper(unsigned level,
 			if (processedMols % 1000000 == 0)
 			{
 				std::cerr << "Level\t" << "# Molecules" << std::endl;
-				for (unsigned m = 2; m <= HIERARCHICAL_LEVEL_BOUND; m++)
+				for (unsigned m = 2; m <= Options::USER_DEFINED_LEVEL_BOUND; m++)
 				{
 					std::cerr << m << "\t" << moleculeLevelCount[m] << std::endl;
 				}
@@ -768,7 +768,7 @@ MoleculeHashHypergraph* Instantiator::ThreadedInstantiate(std::vector<Linker*>& 
 	//
 	// For each level, start a thread and compose the elements with the base set of molecules.
 	//
-	for (unsigned m = 3; m <= HIERARCHICAL_LEVEL_BOUND; m++)
+	for (unsigned m = 3; m <= Options::USER_DEFINED_LEVEL_BOUND; m++)
 	{
 		if (~pthread_create(&queue_threads[m], NULL, ProcessLevel, (void*)&arg_pointer[m]))
 		{
@@ -779,14 +779,14 @@ MoleculeHashHypergraph* Instantiator::ThreadedInstantiate(std::vector<Linker*>& 
 			if (g_debug_output) { std::cout << "Level " << m << " creation failed" << std::endl; }
 		}
 	}
-	for (unsigned m = 3; m <= HIERARCHICAL_LEVEL_BOUND; m++)
+	for (unsigned m = 3; m <= Options::USER_DEFINED_LEVEL_BOUND; m++)
 	{
 		(void)pthread_join(queue_threads[m], NULL);
 		if (g_debug_output) std::cout << "Level " << m << " thread removed" << std::endl;
 	}
 
 	std::cout << "Level\t" << "# Molecules" << std::endl;
-	for (unsigned m = 1; m <= HIERARCHICAL_LEVEL_BOUND; m++)
+	for (unsigned m = 1; m <= Options::USER_DEFINED_LEVEL_BOUND; m++)
 	{
 		std::cout << m << "\t" << moleculeLevelCount[m] << std::endl;
 	}

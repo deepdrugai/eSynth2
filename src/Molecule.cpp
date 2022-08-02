@@ -319,13 +319,13 @@ void Molecule::openBabelPredictLipinski(OpenBabel::OBMol* obmol)
 bool Molecule::willExceedAdditiveThresholds(const Molecule &mol1, const Molecule &mol2)
 {
     // HBD 
-    if (0.41189 + 0.4898 * (mol1.getHBD() + mol2.getHBD()) > HBD_UPPERBOUND) return true;
+    if (0.41189 + 0.4898 * (mol1.getHBD() + mol2.getHBD()) > Constants::HBD_UPPERBOUND) return true;
 
     // HBA1
-    if (0.278 + 0.93778 * (mol1.getHBA1() + mol2.getHBA1()) > HBA1_UPPERBOUND) return true;
+    if (0.278 + 0.93778 * (mol1.getHBA1() + mol2.getHBA1()) > Constants::HBA1_UPPERBOUND) return true;
 
     // Molecular weight
-    if (6.6746 + 0.95965 * (mol1.getMolWt() + mol2.getMolWt()) > MOLWT_UPPERBOUND) return true;
+    if (6.6746 + 0.95965 * (mol1.getMolWt() + mol2.getMolWt()) > Constants::MOLWT_UPPERBOUND) return true;
 
     return false;
 }
@@ -451,18 +451,18 @@ bool Molecule::exceedsMaxEstimatedThresholds()
     // No need to check it again.
 
     // (b) Hydrogen Bond donors
-    if (HBD > HBD_UPPERBOUND)
+    if (HBD > Constants::HBD_UPPERBOUND)
     {
         return false;
     }
 
     // (c) Hydrogen Bond Acceptors
-    if (HBA1 > HBA1_UPPERBOUND)
+    if (HBA1 > Constants::HBA1_UPPERBOUND)
     {
         return false;
     }
 
-    return MolWt > MOLWT_UPPERBOUND;
+    return MolWt > Constants::MOLWT_UPPERBOUND;
 }
 
 //
@@ -481,19 +481,19 @@ bool Molecule::isOpenBabelLipinskiCompliant(OpenBabel::OBMol& mol)
     if (!pDesc4) throw "logP not found";
 
     // (b) Hydrogen Bond donors
-    if (pDesc1->Predict(&mol) > HBD_UPPERBOUND)
+    if (pDesc1->Predict(&mol) > Constants::HBD_UPPERBOUND)
     {
         return false;
     }
 
     // (c) Hydrogen Bond Acceptors
-    if (pDesc2->Predict(&mol) > HBA1_UPPERBOUND)
+    if (pDesc2->Predict(&mol) > Constants::HBA1_UPPERBOUND)
     {
         return false;
     }
 
     // Octanol-water partition coefficient log P not greater than 5
-    if (pDesc4->Predict(&mol) > LOGP_UPPERBOUND)
+    if (pDesc4->Predict(&mol) > Constants::LOGP_UPPERBOUND)
     {
         return false;
     }
@@ -504,13 +504,13 @@ bool Molecule::isOpenBabelLipinskiCompliant(OpenBabel::OBMol& mol)
 bool Molecule::isLipinskiCompliant() const
 {
     // (b) Hydrogen Bond donors
-    if (HBD > HBD_UPPERBOUND) return false;
+    if (HBD > Constants::HBD_UPPERBOUND) return false;
 
     // (c) Hydrogen Bond Acceptors
-    if (HBA1 > HBA1_UPPERBOUND) return false;
+    if (HBA1 > Constants::HBA1_UPPERBOUND) return false;
 
     // Octanol-water partition coefficient log P not greater than 5
-    if (logP > LOGP_UPPERBOUND) return false;
+    if (logP > Constants::LOGP_UPPERBOUND) return false;
 
     return true;
 }

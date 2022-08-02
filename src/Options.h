@@ -15,54 +15,109 @@
  *  along with esynth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * eSynth 2.0
+ * Author: C. Alvin 7/27/2022
+ */
+
 #ifndef _OPTIONS_GUARD
 #define _OPTIONS_GUARD 1
 
 #include <string>
 #include <vector>
+#include <iostream>
 
-//
-// A aggregation class for options specified in the command-line
-//
-class Options
+#include "Utilities.h"
+#include "Constants.h"
+
+ //
+ // A aggregation class for options specified in the command-line
+ //
+struct Options
 {
-  public:
-    Options(int, char**);
-    bool parseCommandLine();
-
-    bool AnalyzeEnvironment();
+    //
+    // v1.0 Constants
+    //
     static std::string writerPath;
     static std::string shmPath;
 
     std::string outFile;
-    std::string outFileSMI;
-    std::string validationFile;
-    std::vector<std::string> inFiles;
 
-    static double TANIMOTO;
     static bool THREADED;
-    static bool SERIAL;
+
     static bool OPENBABEL;
     static bool USE_LIPINSKI;
     //static unsigned SMI_LEVEL_BOUND;
-    static unsigned PROBABILITY_PRUNE_LEVEL_START;
     static unsigned int OBGEN_THREAD_POOL_SIZE;
-    static bool SMI_ONLY;
-    static std::string OUTPUT_DIR_SUFFIX;
 
     static double SA_THRESHOLD;
-    static std::string PYTHON_MODULE_NAME;
-    static std::string PYTHON_FUNCTION_NAME;
+    //static std::string PYTHON_MODULE_NAME;
+    //static std::string PYTHON_FUNCTION_NAME;
 
-  private:
-    int argc;
-    char** argv;
 
-    bool handleOption(int& index);
+    //
+    // v2.0 Constants
+    //
+    static bool SMI_ONLY;
+    static bool SERIAL;
 
-    bool acquireEnvironmentVariable(const std::string& variable,
-                                    const std::string& suffix,
-                                    std::string& value);
+    static std::string OUTPUT_FILE;
+    static std::string OUTPUT_SMI_FILE;
+    static std::string OUTPUT_DIRECTORY;
+
+    // As molecules are generated, perform (on-the-fly) validation
+    // Once all molecules have been validated, operations should cease.
+    static bool OTF_VALIDATE;
+    static std::string VALIDATION_FILE;
+
+    static double TANIMOTO;
+    static unsigned PROBABILITY_PRUNE_LEVEL_START;
+    static unsigned USER_DEFINED_LEVEL_BOUND;
+
+
+    // SMILES format for synthesized molecules
+    static void setSMILESOutputOnly() { SMI_ONLY = true; }
+
+    // Non-threaded execution
+    static void setSerialExecution() { SERIAL = true; }
+
+    static void setOutputFile(const std::string& name) { OUTPUT_FILE = name; }
+    static void setOutputDirectory(const std::string& name) { OUTPUT_DIRECTORY = name; }
+    static void setValidationFile(const std::string& name)
+    {
+        OTF_VALIDATE = true;
+        VALIDATION_FILE = name;
+    }
+
+    /*
+     * Set the Tanimoto coefficient for molecular 'equivalence'
+     */
+    static void setTanimotoCoeff(double value)
+    {
+        if (value < 0 || value > 1) return;
+
+        TANIMOTO = value;
+    }
+
+    /*
+     * Set the probability prune level, if it is valid.
+     */
+    static void setLevelBound(unsigned level)
+    {
+        if (level > Constants::MAX_SYNTH_LEVEL_BOUND) return;
+
+        USER_DEFINED_LEVEL_BOUND = level;
+    }
+
+    /*
+     * Set the probability prune level, if it is valid.
+     */
+    static void setProbLevel(unsigned level)
+    {
+        if (level > Constants::MAX_SYNTH_LEVEL_BOUND) return;
+
+        PROBABILITY_PRUNE_LEVEL_START = level;
+    }
 };
 
 #endif

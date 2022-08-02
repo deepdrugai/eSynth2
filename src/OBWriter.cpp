@@ -84,7 +84,7 @@ OBWriter::OBWriter(unsigned int threadCount) : mCounter(0),
     sdfSuffix = ".sdf";
     smiSuffix = ".smi";
     UPPERBOUND = 250000;
-    outputDir = DEFAULT_OUTPUT_DIR;
+    outputDir = Options::OUTPUT_DIRECTORY;
     sdfOutfileName = outputDir + "/" + prefix + "-1-10000" + sdfSuffix;
     smiOutfileName = outputDir + "/" + prefix + "-1-250000" + smiSuffix;
 }
@@ -131,12 +131,12 @@ void OBWriter::IndicateSynthesisStarted()
     //
     // Construct the actual directory
     //
-    std::string theDir = DEFAULT_OUTPUT_DIR;
-    if (Options::OUTPUT_DIR_SUFFIX != "")
-    {
-        theDir += "_";
-        theDir += Options::OUTPUT_DIR_SUFFIX;
-    }
+    std::string theDir = Options::OUTPUT_DIRECTORY;
+    // if (Options::OUTPUT_DIR_SUFFIX != "")
+    // {
+        // theDir += "_";
+        // theDir += Options::OUTPUT_DIR_SUFFIX;
+    // }
 
     std::cout << "Will output to directory: " << theDir << std::endl;
 
