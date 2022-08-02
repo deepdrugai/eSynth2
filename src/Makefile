@@ -16,7 +16,7 @@
 #
 
 CC=g++ 
-OPT= -Wall -O2 -fpermissive 
+OPT= -Wall -O2 -fpermissive -std=c++14 -lstdc++fs
 
 #Path to openbabel directory which contains the header (.h) files 
 OB_INC= /usr/local/include/openbabel-2.0 
