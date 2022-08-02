@@ -27,6 +27,7 @@
 #include <map>
 
 #include "Options.h"
+#include "FileUtilities.h"
 #include "Utilities.h"
 #include "Constants.h"
 
@@ -384,10 +385,11 @@ class CommandLineParser
     //
     //
 
+  public:
     /*
      * Usage information; output of the possible options
      */
-    void usage() const
+    static void usage()
     {
         std::cout << Constants::ESYNTH_EXECUTABLE
             << " may be executed with the following options:"
@@ -402,6 +404,15 @@ class CommandLineParser
     }
 
     /*
+     * Version information
+     */
+    static void version()
+    {
+        std::cout << Constants::ESYNTH_VERSION << std::endl;
+    }
+
+  protected:
+    /*
      * @return: maximum width required for the keys; ensures even columnar output
      */
     template <typename T>
@@ -413,14 +424,6 @@ class CommandLineParser
             max = max > it->first.size() ? max : it->first.size();
         }
         return max;
-    }
-
-    /*
-     * Version information
-     */
-    void version() const
-    {
-        std::cout << Constants::ESYNTH_VERSION << std::endl;
     }
 };
 
