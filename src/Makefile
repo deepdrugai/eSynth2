@@ -16,7 +16,7 @@
 #
 
 CC=g++ 
-OPT= -Wall -O2 -fpermissive 
+OPT= -Wall -O2 -fpermissive -std=c++14 -lstdc++fs
 
 #Path to openbabel directory which contains the header (.h) files 
 OB_INC= /usr/local/include/openbabel-2.0 
@@ -49,8 +49,8 @@ DEPS = EdgeAggregator.h \
 	OBWriter.h \
 	Options.h \
 	Validator.h \
-  OTFValidator.h \
-  OTFValidators.h \
+	OTFValidator.h \
+	OTFValidators.h \
 	obgen.h \
 	Thread_Pool.h \
 	IdFactory.h \
@@ -88,8 +88,8 @@ _OBJ = Atom.o \
 	AtomT.o \
 	OBWriter.o \
 	Validator.o \
-  OTFValidator.o \
-  OTFValidators.o \
+	OTFValidator.o \
+	OTFValidators.o \
 	Options.o \
 	IdFactory.o \
 	obgen.o \

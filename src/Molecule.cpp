@@ -319,13 +319,13 @@ void Molecule::openBabelPredictLipinski(OpenBabel::OBMol* obmol)
 bool Molecule::willExceedAdditiveThresholds(const Molecule &mol1, const Molecule &mol2)
 {
     // HBD 
-    if (0.41189 + 0.4898 * (mol1.getHBD() + mol2.getHBD()) > HBD_UPPERBOUND) return true;
+    if (0.41189 + 0.4898 * (mol1.getHBD() + mol2.getHBD()) > Constants::HBD_UPPERBOUND) return true;
 
     // HBA1
-    if (0.278 + 0.93778 * (mol1.getHBA1() + mol2.getHBA1()) > HBA1_UPPERBOUND) return true;
+    if (0.278 + 0.93778 * (mol1.getHBA1() + mol2.getHBA1()) > Constants::HBA1_UPPERBOUND) return true;
 
     // Molecular weight
-    if (6.6746 + 0.95965 * (mol1.getMolWt() + mol2.getMolWt()) > MOLWT_UPPERBOUND) return true;
+    if (6.6746 + 0.95965 * (mol1.getMolWt() + mol2.getMolWt()) > Constants::MOLWT_UPPERBOUND) return true;
 
     return false;
 }
@@ -450,19 +450,25 @@ bool Molecule::exceedsMaxEstimatedThresholds()
     // We already checked if this molecule will exceed the upper bound for molecular weight.
     // No need to check it again.
 
+    std::cout << HBD << " > " << Constants::HBD_UPPERBOUND << std::endl;
+
     // (b) Hydrogen Bond donors
-    if (HBD > HBD_UPPERBOUND)
+    if (HBD > Constants::HBD_UPPERBOUND)
     {
         return false;
     }
+
+    std::cout << HBA1 << " > " << Constants::HBA1_UPPERBOUND << std::endl;
 
     // (c) Hydrogen Bond Acceptors
-    if (HBA1 > HBA1_UPPERBOUND)
+    if (HBA1 > Constants::HBA1_UPPERBOUND)
     {
         return false;
     }
 
-    return MolWt > MOLWT_UPPERBOUND;
+    std::cout << MolWt << " > " << Constants::MOLWT_UPPERBOUND << std::endl;
+
+    return MolWt > Constants::MOLWT_UPPERBOUND;
 }
 
 //
@@ -481,19 +487,19 @@ bool Molecule::isOpenBabelLipinskiCompliant(OpenBabel::OBMol& mol)
     if (!pDesc4) throw "logP not found";
 
     // (b) Hydrogen Bond donors
-    if (pDesc1->Predict(&mol) > HBD_UPPERBOUND)
+    if (pDesc1->Predict(&mol) > Constants::HBD_UPPERBOUND)
     {
         return false;
     }
 
     // (c) Hydrogen Bond Acceptors
-    if (pDesc2->Predict(&mol) > HBA1_UPPERBOUND)
+    if (pDesc2->Predict(&mol) > Constants::HBA1_UPPERBOUND)
     {
         return false;
     }
 
     // Octanol-water partition coefficient log P not greater than 5
-    if (pDesc4->Predict(&mol) > LOGP_UPPERBOUND)
+    if (pDesc4->Predict(&mol) > Constants::LOGP_UPPERBOUND)
     {
         return false;
     }
@@ -504,13 +510,13 @@ bool Molecule::isOpenBabelLipinskiCompliant(OpenBabel::OBMol& mol)
 bool Molecule::isLipinskiCompliant() const
 {
     // (b) Hydrogen Bond donors
-    if (HBD > HBD_UPPERBOUND) return false;
+    if (HBD > Constants::HBD_UPPERBOUND) return false;
 
     // (c) Hydrogen Bond Acceptors
-    if (HBA1 > HBA1_UPPERBOUND) return false;
+    if (HBA1 > Constants::HBA1_UPPERBOUND) return false;
 
     // Octanol-water partition coefficient log P not greater than 5
-    if (logP > LOGP_UPPERBOUND) return false;
+    if (logP > Constants::LOGP_UPPERBOUND) return false;
 
     return true;
 }
@@ -577,17 +583,8 @@ std::vector<EdgeAggregator*>* Molecule::Compose(const Molecule& that) const
 
                 // Create a new molecule;
                 // The indices are the new indices when the atoms and bonds are combined together.
-                Molecule* newMol = 0;
-                if (Options::OPENBABEL)
-                {
-                    // newMol = ComposeToNewOpenBabelMolecule(that, thisA + 1,
-                    //                                 thatA + this->atoms.size() + 1);
-                }
-                else
-                {
-                    newMol = ComposeToNewLocalMolecule(that, thisA + 1,
-                                                       thatA + this->atoms.size() + 1);
-                }
+                Molecule* newMol = ComposeToNewLocalMolecule(that, thisA + 1,
+                                                              thatA + this->atoms.size() + 1);
 
                 // Add the new molecule / edge to the list of new molecules
                 newMolecules->push_back(new EdgeAggregator(ante, newMol, new EdgeAnnotationT()));
@@ -598,140 +595,140 @@ std::vector<EdgeAggregator*>* Molecule::Compose(const Molecule& that) const
     return newMolecules;
 }
 
-// *****************************************************************************
-//
-// Create the local informations:
-//    (1) Using the same style invoked by OpenBabel, we modify the indices by adding their
-//        number of atoms in this to the index of the atoms in that.
-//    (2) Bonds based on indices will be updated accordingly.
-//
+// // *****************************************************************************
+// //
+// // Create the local informations:
+// //    (1) Using the same style invoked by OpenBabel, we modify the indices by adding their
+// //        number of atoms in this to the index of the atoms in that.
+// //    (2) Bonds based on indices will be updated accordingly.
+// //
 
-#ifdef ZERO
+// #ifdef ZERO
 
-Molecule* Molecule::ComposeToNewOpenBabelMolecule(const Molecule& that,
-                                                  int thisAtomIndex,
-                                                  int thatAtomIndex) const
-{
-    static unsigned int num_blocked = 0;
+// Molecule* Molecule::ComposeToNewOpenBabelMolecule(const Molecule& that,
+//                                                   int thisAtomIndex,
+//                                                   int thatAtomIndex) const
+// {
+//     static unsigned int num_blocked = 0;
 
-    if (Options::THREADED)
-    {
-        num_blocked++;
-        std::cerr << "Waiting on open babel lock: (" << num_blocked << ") are." << std::endl;
+//     if (Options::THREADED)
+//     {
+//         num_blocked++;
+//         std::cerr << "Waiting on open babel lock: (" << num_blocked << ") are." << std::endl;
 
-        pthread_mutex_lock(&Molecule::openbabel_lock);
+//         pthread_mutex_lock(&Molecule::openbabel_lock);
 
-        num_blocked--;
-    }
+//         num_blocked--;
+//     }
 
-    //
-    // Combine the Open Babel representations.
-    //
-    OpenBabel::OBMol* newOBMol = new OpenBabel::OBMol(*this->obmol);
+//     //
+//     // Combine the Open Babel representations.
+//     //
+//     OpenBabel::OBMol* newOBMol = new OpenBabel::OBMol(*this->obmol);
 
-    *newOBMol += *that.obmol;
+//     *newOBMol += *that.obmol;
 
-    // Add the new Open Babel bond.
-    // This, along with the construction of the local molecule takes care of the new bond
-    newOBMol->AddBond(thisAtomIndex, thatAtomIndex, 1); // Order of the bond is 1.
+//     // Add the new Open Babel bond.
+//     // This, along with the construction of the local molecule takes care of the new bond
+//     newOBMol->AddBond(thisAtomIndex, thatAtomIndex, 1); // Order of the bond is 1.
 
-    // Remove the comment information as it is no longer relevant to this molecule.
-    newOBMol->DeleteData("Comment");
+//     // Remove the comment information as it is no longer relevant to this molecule.
+//     newOBMol->DeleteData("Comment");
 
-    // Unlocking open babel; the next constructor call performs a relock
-    std::string smi;
-    OBWriter::ScrubAndConvertToSMIInternal(newOBMol, smi);
+//     // Unlocking open babel; the next constructor call performs a relock
+//     std::string smi;
+//     OBWriter::ScrubAndConvertToSMIInternal(newOBMol, smi);
 
-std::cerr << smi << std::endl;
+// std::cerr << smi << std::endl;
 
-    if (Options::THREADED)
-    {
-        pthread_mutex_unlock(&Molecule::openbabel_lock);
-    }
+//     if (Options::THREADED)
+//     {
+//         pthread_mutex_unlock(&Molecule::openbabel_lock);
+//     }
 
-    //
-    //
-    // Transfer the local data.
-    //
-    //
-    // Create the new Molecule object; it will create the localized information.
-    Molecule* newLocal = new Molecule(newOBMol, smi, COMPLEX);
+//     //
+//     //
+//     // Transfer the local data.
+//     //
+//     //
+//     // Create the new Molecule object; it will create the localized information.
+//     Molecule* newLocal = new Molecule(newOBMol, smi, COMPLEX);
 
-    //
-    // Copy the local atom information
-    //
-    int newAtomCount = 0;
-    for (int a = 0; a < this->atoms.size(); a++, newAtomCount++)
-    {
-        newLocal->atoms[newAtomCount].SetBasedOn(this->atoms[a]);
-    }
+//     //
+//     // Copy the local atom information
+//     //
+//     int newAtomCount = 0;
+//     for (int a = 0; a < this->atoms.size(); a++, newAtomCount++)
+//     {
+//         newLocal->atoms[newAtomCount].SetBasedOn(this->atoms[a]);
+//     }
 
-    int firstThatIndex = newAtomCount;
-    for (int a = 0; a < that.atoms.size(); a++, newAtomCount++)
-    {
-        newLocal->atoms[newAtomCount].SetBasedOn(that.atoms[a]);
-    }
+//     int firstThatIndex = newAtomCount;
+//     for (int a = 0; a < that.atoms.size(); a++, newAtomCount++)
+//     {
+//         newLocal->atoms[newAtomCount].SetBasedOn(that.atoms[a]);
+//     }
 
-    // Init the fragment counter container.
-    newLocal->initFragmentInfo();
+//     // Init the fragment counter container.
+//     newLocal->initFragmentInfo();
 
-    // Combine all the linkers and rigids into this molecule.
-    for (int f = 0; f <= FRAGMENT_END_INDEX; f++)
-    {
-        newLocal->fragmentCounter[f] = this->fragmentCounter[f] + that.fragmentCounter[f];
-    }
-    // Calculate all the fragment values: summary data.
-    //newLocal->calcFragmentInfo();
+//     // Combine all the linkers and rigids into this molecule.
+//     for (int f = 0; f <= FRAGMENT_END_INDEX; f++)
+//     {
+//         newLocal->fragmentCounter[f] = this->fragmentCounter[f] + that.fragmentCounter[f];
+//     }
+//     // Calculate all the fragment values: summary data.
+//     //newLocal->calcFragmentInfo();
 
-    //
-    // Add local information to the new molecule.
-    // Bonds in open babel start indexing at 1.
-    //
-    newLocal->atoms[thisAtomIndex-1].addExternalConnection(); //thatAtomIndex-1);
-    newLocal->atoms[thatAtomIndex-1].addExternalConnection(); //thisAtomIndex-1);
+//     //
+//     // Add local information to the new molecule.
+//     // Bonds in open babel start indexing at 1.
+//     //
+//     newLocal->atoms[thisAtomIndex-1].addExternalConnection(); //thatAtomIndex-1);
+//     newLocal->atoms[thatAtomIndex-1].addExternalConnection(); //thisAtomIndex-1);
 
-    //
-    // Create the fingerprint graph for the new molecule by:
-    //   (1) copying this fingerprint graph
-/*
-    newLocal->fingerprint = this->fingerprint->copy();
+//     //
+//     // Create the fingerprint graph for the new molecule by:
+//     //   (1) copying this fingerprint graph
+// /*
+//     newLocal->fingerprint = this->fingerprint->copy();
 
-    // Add the new linker / rigid connection to the graph
-    std::pair<unsigned int, unsigned int> toIndex;
-    toIndex = newLocal->fingerprint->AddEdgeAndNode(
-                          newLocal->atoms[thisAtomIndex - 1].getConnectionID(),
-                          newLocal->atoms[thisAtomIndex - 1].getGraphNodeIndex(),
-                          newLocal->atoms[thatAtomIndex - 1],
-                          that);
+//     // Add the new linker / rigid connection to the graph
+//     std::pair<unsigned int, unsigned int> toIndex;
+//     toIndex = newLocal->fingerprint->AddEdgeAndNode(
+//                           newLocal->atoms[thisAtomIndex - 1].getConnectionID(),
+//                           newLocal->atoms[thisAtomIndex - 1].getGraphNodeIndex(),
+//                           newLocal->atoms[thatAtomIndex - 1],
+//                           that);
 
-std::cout << *this->fingerprint << std::endl << "+++++++++++" << std::endl;
-std::cout << *that.fingerprint << std::endl << "===========" << std::endl;
-std::cout << *newLocal->fingerprint << std::endl;
+// std::cout << *this->fingerprint << std::endl << "+++++++++++" << std::endl;
+// std::cout << *that.fingerprint << std::endl << "===========" << std::endl;
+// std::cout << *newLocal->fingerprint << std::endl;
 
-std::cout << "Graph node index: ("
-          << newLocal->atoms[thisAtomIndex - 1].getGraphNodeIndex().first
-          << ", " << newLocal->atoms[thisAtomIndex - 1].getGraphNodeIndex().second
-          << ")" << std::endl;
+// std::cout << "Graph node index: ("
+//           << newLocal->atoms[thisAtomIndex - 1].getGraphNodeIndex().first
+//           << ", " << newLocal->atoms[thisAtomIndex - 1].getGraphNodeIndex().second
+//           << ")" << std::endl;
 
 
-    // Update the atoms of the new 'to' node to reflect the proper indices in the graph.
-    for (int a = 0; a < that.atoms.size(); a++)
-    {
-        newLocal->atoms[firstThatIndex++].UpdateIndices(toIndex);
-    }
+//     // Update the atoms of the new 'to' node to reflect the proper indices in the graph.
+//     for (int a = 0; a < that.atoms.size(); a++)
+//     {
+//         newLocal->atoms[firstThatIndex++].UpdateIndices(toIndex);
+//     }
 
-*/
+// */
 
-    // Estimate the Lipinski parameters.
-    newLocal->estimateLipinski(*this, that);
+//     // Estimate the Lipinski parameters.
+//     newLocal->estimateLipinski(*this, that);
 
-std::string s;
-newLocal->WriteToOpenBabelFormat(s);
+// std::string s;
+// newLocal->WriteToOpenBabelFormat(s);
 
-    return newLocal;
-}
+//     return newLocal;
+// }
 
-#endif
+// #endif
 
 // *****************************************************************************
 //
@@ -1052,4 +1049,3 @@ bool Molecule::ProbabilisticExclusion(const Molecule* const mol)
     
     // gsl_rng_free(rec);
 }
-

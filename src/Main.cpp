@@ -72,10 +72,11 @@
 //
 // Global set of linkers and bricks read from the input files.
 //
-std::vector<Linker*> linkers;
-std::vector<Brick*> bricks;
+std::vector<Linker*> linkers{};
+std::vector<Brick*> bricks{};
 
-void Cleanup(std::vector<Linker*>& linkers, std::vector<Brick*>& bricks);
+void Cleanup(const std::vector<Linker*>& linkers,
+             const std::vector<Brick*>& bricks);
 
 //
 // Split the molecule into atoms/bonds as well as connectivity information
@@ -149,26 +150,28 @@ Molecule* createLocalMolecule(OpenBabel::OBMol* mol, MoleculeT mType,
 	return 0;
 }
 
-void addMolecule(char type, Molecule* molecule)
+void addMolecule(Constants::FRAGMENT_TYPE fType, Molecule* molecule)
 {
-	// linker
-	if (type == 'l')
-	{
-		linkers.push_back(static_cast<Linker*>(molecule));
-	}
-	// brick or brick
-	else if (type == 'r' || type == 'b')
-	{
-		bricks.push_back(static_cast<Brick*>(molecule));
-	}
-	else
-	{
-		std::cerr << "Unrecognized file prefix: "
-			<< type << "Expected: l->linker, b->brick" << std::endl;
-	}
+    switch(fType)
+    {
+        case Constants::FRAGMENT_TYPE::BRICK:
+            bricks.push_back(static_cast<Brick*>(molecule));
+            break;
+
+        case Constants::FRAGMENT_TYPE::LINKER:
+            linkers.push_back(static_cast<Linker*>(molecule));
+            break;
+
+        case Constants::FRAGMENT_TYPE::FREE_ATOM:
+            std::cerr << "Internal unexpected FREE_ATOM type." << std::endl;
+            break;
+
+        default:
+        		std::cerr << "Unrecognized input fragment type." << std::endl;
+    }
 }
 
-void readMoleculeFile(const char* fileName)
+void readMoleculeFile(const char* fileName, Constants::FRAGMENT_TYPE fType)
 {
 	//
 	// Input parser conversion functionality for Open babel
@@ -187,7 +190,7 @@ void readMoleculeFile(const char* fileName)
 	std::string prefix = "";
 	std::string suffix = "";
 
-	while (splitMolecule(infile, name, prefix, suffix))
+	while (!infile.eof() && infile.good() && splitMolecule(infile, name, prefix, suffix))
 	{
 		//
 		// If the name of molecule is not given, overwrite it with
@@ -206,11 +209,12 @@ void readMoleculeFile(const char* fileName)
 
 		// Create and parse using Open Babel
 		OpenBabel::OBMol* mol = new OpenBabel::OBMol();
-		bool notAtEnd = obConversion.ReadString(mol, prefix);
+		//bool notAtEnd = 
+		obConversion.ReadString(mol, prefix);
 
 		// Assign all needed data to the molecule (comment data)
 		Molecule* local = createLocalMolecule(mol,
-			tolower(fileName[0]) == 'l' ? LINKER : BRICK,
+			fType == Constants::FRAGMENT_TYPE::BRICK ? BRICK : LINKER,
 			name, suffix);
 
 		//std::cerr << *local << std::endl;
@@ -235,7 +239,7 @@ void readMoleculeFile(const char* fileName)
 		if (g_debug_output) std::cout << "Local: " << *local << "|" << std::endl;
 
 		// Add to the linker or brick list as needed.
-		addMolecule(tolower(fileName[0]), local);
+		addMolecule(fType, local);
 
 		// We don't keep a copy of the OpenBabel molecule anymore.
 		delete mol;
@@ -246,86 +250,48 @@ void readMoleculeFile(const char* fileName)
 //
 // Parse each input data files
 //
-bool readInputFiles(const Options& options)
+bool readInputFiles(const std::map<std::string, Constants::FRAGMENT_TYPE>& infiles)
 {
-	for (std::vector<std::string>::const_iterator it = options.inFiles.begin();
-		it != options.inFiles.end(); it++)
-	{
-		char charPrefix = tolower((*it)[0]);
-		if (charPrefix != 'l' && charPrefix != 'r' && charPrefix != 'b')
-		{
-			cerr << "Unexpected file prefix: \'" << (*it)[0]
-				<< "\' with file " << *it << endl;
-			return false;
-		}
+    for (auto const& infile : infiles)
+	  {
+       readMoleculeFile(infile.first.c_str(), infile.second);
+	  }
 
-		readMoleculeFile((*it).c_str());
-	}
-
-	return true;
+    return true;
 }
 
-int main(int argc, char** argv)
+#include "InputFacade.h"
+#include "CommandLineParser.h"
+
+int main(int argc, const char** argv)
 {
-	if (argc < 2)
-	{
-		std::cerr << "Usage: <program> [SDF-file-list] -o <output-file> -v <validation-file>"
-			<< " -pool <#obgen-threads>" << std::endl;
-		return 1;
-	}
+    if (argc < 2)
+	  {
+	      CommandLineParser::usage();
+	  	  return 1;
+	  }
 
-	//
-	// Remove log files from a previous run.
-	//
+    //
+	  // The input facade:
+    // (1) identifies and set Options in the static Options class
+    // (2) Identifies legitimate, existing input fragment files 
+    Options::init();
+    InputFacade inf { argc, argv };
 
-	// system("rm molecules.smi");
-	// system("rm synth_log_initial_fragments_logfile.txt");
-	// system("rm ScrubAndExportSMI_logfile.txt");
-	// system("rm Validation_logfile.txt");
+    // If usage or versioning is requested.
+    if (!inf.parse()) return 0;
 
-	//
-	// Global options object.
-	//
-	Options options(argc, argv);
-	if (!options.parseCommandLine())
-	{
-		std::cerr << "Command-line parsing failed; exiting." << std::endl;
-		return 1;
-	}
+    //
+    // Remove log files from a previous run.
+    //
+    // v1.0
+    //
+    // system("rm molecules.smi");
+    // system("rm synth_log_initial_fragments_logfile.txt");
+    // system("rm ScrubAndExportSMI_logfile.txt");
+    // system("rm Validation_logfile.txt");
 
-	/*
-	if (!options.AnalyzeEnvironment())
-	{
-	std::cerr << "Environment not set properly; exiting." << std::endl;
-	return 1;
-	}
-	*/
-
-	// 
-	// Output command-line option information
-	//
-	if (Options::THREADED) std::cout << "Threaded execution." << std::endl;
-	else if (Options::SERIAL) std::cout << "Serial execution." << std::endl;
-	else
-	{
-		std::cerr << "Neither serial nor threaded specified; exiting." << std::endl;
-		return 1;
-	}
-
-	// std::cout << "SMI Comparison Level: " << Options::SMI_LEVEL_BOUND << std::endl;
-	std::cout << "Probability Filtration Level: "
-		<< Options::PROBABILITY_PRUNE_LEVEL_START << std::endl;
-
-	// Printing the specified Tanimoto value to the user.
-	// std::cerr << "Tanimoto Coefficient Threshold Specified: "
-	//           << Options::TANIMOTO << std::endl;
-	if (!Options::SMI_ONLY)
-	{
-		std::cerr << "OBGEN output thread pool size: "
-			<< Options::OBGEN_THREAD_POOL_SIZE << std::endl;
-	}
-
-	if (!readInputFiles(options)) return 1;
+    if (!readInputFiles(inf.getFiles())) return 1;
 
 	//
 	// Bypass synthesis for acquiring information about the input fragments.
@@ -339,49 +305,28 @@ int main(int argc, char** argv)
 
 	// Output object for the nodes of the hypergraph.
 	OBWriter* writer = new OBWriter(Options::OBGEN_THREAD_POOL_SIZE);
-	if (Options::SMI_ONLY) writer->InitializeFile(options.outFileSMI);
-	else writer->InitializeFile(options.outFile);
-	//if (options.validationFile == "") OBWriter::TurnValidationOff();
-	// else, create an openbabel molecule from the validation file 
+	if (Options::SMI_ONLY) writer->InitializeFile(Options::OUTPUT_SMI_FILE);
+	else writer->InitializeFile(Options::OUTPUT_FILE);
 
 	// Create On_the_Fly_Validators
-	OTFValidators validators(options.validationFile);
+	OTFValidators validators(Options::VALIDATION_FILE);
 
 	// The main object that performs synthesis.
-	// CHANGE: include validator object  
 	Instantiator instantiator(writer, cout, &validators);
 
-  // write the result of tc analysis once after validate all molecules 
+	// Run synthesis
+	if (Options::THREADED) instantiator.ThreadedInstantiate(linkers, bricks);
+	else if (Options::SERIAL) instantiator.SerialInstantiate(linkers, bricks);
+
+    // With instantiation complete, output the TC-based analysis of generated
+    // molecule similarity
 	validators.writeToFiles();
-
-	// Instantiation build the hypergraph; this is the main data structure for the
-	// resultant molecules.
-	// Also creates the hypergraph using threaded or non-threaded techniques.
-	MoleculeHashHypergraph* graph = 0;
-	if (Options::THREADED) graph = instantiator.ThreadedInstantiate(linkers, bricks);
-	else if (Options::SERIAL) graph = instantiator.SerialInstantiate(linkers, bricks);
-
-	// std::cout << "Hypergraph contains (" << graph->currentSize()
-	//           << ", " << graph->nonKilledSize()<< ") nodes" << std::endl;
-
 
 	unsigned inc = instantiator.getIncluded();
 	unsigned exc = instantiator.getExcluded();
 
 	std::cout << "Excluded (" << exc << "); Included (" << inc << ") \t Excluded: "
-		<< ((double)(exc) / (exc + inc)) << "\%" << std::endl;
-
-	// External output will always have 0 molecules; uncomment for internal usage and
-	// accurate numbers.
-	// std::cout << OBWriter::NumCompliantMolecules()
-	//          << " are Lipinski compliant molecules" << std::endl;
-
-	//
-	// Validate the molecules specified in the validation file (command-line -v)
-
-	// CHANGE: comment out the original validator 
-	//Validator validator(OBWriter::compliantMols);
-	//validator.Validate(options.validationFile);
+              << ((double)(exc) / (exc + inc)) << "\%" << std::endl;
 
 	// Deleting the writer will kill the thread pool.
 	delete writer;
@@ -394,7 +339,7 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-void Cleanup(std::vector<Linker*>& linkers, std::vector<Brick*>& bricks)
+void Cleanup(const std::vector<Linker*>& linkers, const std::vector<Brick*>& bricks)
 {
 	for (unsigned ell = 0; ell < linkers.size(); ell++)
 	{

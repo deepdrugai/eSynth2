@@ -9,18 +9,27 @@
 OTFValidators::OTFValidators(const std::string& validFile) :
 	_validationFile{validFile}
 {
-  readValidationFile();
+    if (!Options::OTF_VALIDATE) return;
+
+    if (validFile == "")
+    {
+		std::cerr << "Validation file name is not valid: \"\"" << std::endl; 
+    }
+
+    readValidationFile();
 }
 
 OTFValidators::~OTFValidators()
 {
-	// delete memory for each pointer of OTFValidator 
-	for (std::vector<OTFValidator*>::iterator it = _validators.begin(); it != _validators.end(); it++)
+	// delete each OTFValidator 
+	for (auto it = _validators.begin(); it != _validators.end(); it++)
 		delete *it;
 }
 
 void OTFValidators::validate(const std::string& smi)
 {
+    if (!Options::OTF_VALIDATE) return;
+
 	for (OTFValidator* vali : _validators)
 	{
 		vali->validate(smi); 

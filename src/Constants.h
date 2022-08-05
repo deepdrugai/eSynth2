@@ -15,44 +15,116 @@
  *  along with esynth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * eSynth 2.0
+ * Author: C. Alvin 7/27/2022
+ */
+
 #ifndef _CONSTANTS_GUARD
 #define _CONSTANTS_GUARD 1
 
-
+#include <vector>
 #include <string>
+#include <utility>
+#include <map>
+
+class Constants
+{
+  public:
+    static const std::string ESYNTH_VERSION;
+    static const std::string ESYNTH_EXECUTABLE;
+
+    //
+    // Command-line arguments
+    //
+    // Singleton command-line arguments
+    static const std::string CMD_ARG_SMI_ONLY;
+    static const std::string CMD_ARG_USAGE;
+    static const std::string CMD_ARG_VERSION;
+    static const std::string CMD_ARG_SERIAL;
+    static const std::vector<std::string> CMD_ARGS_SINGLETON;
+    static const std::pair<std::string, std::string> SMI_ONLY_DESCIPTION;
+
+    // Paired (arg, arg-value) command-line arguments
+    static const std::string CMD_ARG_OUTPUT_FILE;
+    static const std::string CMD_ARG_OUTPUT_DIR;
+    static const std::string CMD_ARG_VALIDATION_FILE;
+    static const std::string CMD_ARG_TANIMOTO_COEFF;
+    static const std::string CMD_ARG_LEVEL_BOUND;
+    static const std::string CMD_ARG_PROB_LEVEL;
+    static const std::vector<std::string> CMD_ARGS_PAIRED;
+
+    // Help descriptions for each possible argument
+    static const std::map<std::string, std::string> USAGE_MAP;
+
+    //
+    // Input file arguments
+    //
+    static const std::string INPUT_SDF_FILE_EXTENSION;
+
+    static const std::string BRICK_PREFIX;
+    static const std::string RIGID_PREFIX;
+    static const std::string LINKER_PREFIX;
+    static const std::string FREE_ATOM_PREFIX;
+    static const std::string UNIQUE_FRAGMENT_PREFIX;
+    static const std::string ALL_FRAGMENT_PREFIX;
+    static const std::vector<std::string> UNAMBIGUOUS_ACCEPTABLE_INPUT_FILE_PREFIXES;
+    static const std::vector<std::string> AMBIGUOUS_ACCEPTABLE_INPUT_FILE_PREFIXES;
+
+    static const std::string ACCEPTABLE_INPUT_LINKER_FILE_SUBSTR;
+    static const std::string ACCEPTABLE_INPUT_BRICK_FILE_SUBSTR;
+    static const std::string ACCEPTABLE_INPUT_FREE_ATOM_FILE_SUBSTR;
+
+    static const std::vector<std::string> ACCEPTABLE_INPUT_FILE_SUBSTRS;
+
+    typedef enum
+    {
+        LINKER,
+        BRICK,
+        FREE_ATOM,
+        ERROR
+    } FRAGMENT_TYPE;
 
 
-const unsigned int null = 0;
+    //
+    // User-defined options
+    //
+    static std::string DEFAULT_OUTPUT_FILE;
+    static std::string DEFAULT_OUTPUT_SMI_FILE;
+    static std::string DEFAULT_OUTPUT_DIR;
 
-const std::string COMPLIANT_EXE = "compliantwriter";
+    static double DEFAULT_TANIMOTO;
 
-const int NOT_FOUND = -1;
-
-
-// Debugging constants
-const bool DEBUG = true;
-const bool HYPERGRAPH_CONSTR_DEBUG = true;
-const bool g_debug_output = false;
-
-
-const int THREAD_POOL_SIZE = 10;
+    // upper bound for level-based threading synthesis
+    static unsigned MAX_SYNTH_LEVEL_BOUND;
+    static unsigned DEFAULT_PROBABILITY_PRUNE_LEVEL_START;
 
 
-// skip the entire synthesis, just output lipinski descriptors for
-//  the input fragments to "initial_fragments_logfile.txt" and exit
-const bool g_calculate_lipinski_descriptors_for_input_fragments_only = false;
+    //
+    // v1.0 Constants
+    //
 
-// upper bound for level-based threading synthesis
-extern unsigned int HIERARCHICAL_LEVEL_BOUND;
+    // Limiting factors on molecule generation.
+    static double MOLWT_UPPERBOUND;
+    static double HBD_UPPERBOUND;
+    static double HBA1_UPPERBOUND;
+    static double LOGP_UPPERBOUND;   
+};
 
-// Limiting factor on molecule generation.
-extern double MOLWT_UPPERBOUND;
-extern double HBD_UPPERBOUND;
-extern double HBA1_UPPERBOUND;
-extern double LOGP_UPPERBOUND;
+    const int NOT_FOUND = -1;
 
-extern std::string DEFAULT_OUTPUT_DIR;
 
-extern bool VALIDATE;
+    // Debugging constants
+    const bool DEBUG = true;
+
+    const bool g_debug_output = false;
+
+
+    const int THREAD_POOL_SIZE = 10;
+
+
+    // skip the entire synthesis, just output lipinski descriptors for
+    //  the input fragments to "initial_fragments_logfile.txt" and exit
+    const bool g_calculate_lipinski_descriptors_for_input_fragments_only = false;
 
 #endif

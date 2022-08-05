@@ -15,14 +15,150 @@
  *  along with esynth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _UTILITIES_GUARD
-#define _UTILITIES_GUARD 1
+ /*
+  * eSynth 2.0
+  * Author: C. Alvin 8/2022
+  */
 
-#include <cmath>
+#ifndef _UTILITIES_GUARD_H
+#define _UTILITIES_GUARD_H
+
+#include <algorithm>
 #include <vector>
-#include <iostream>
+#include <cctype>
 #include <string>
+#include <numeric>
+#include <map>
 
+/*
+ * A class to facilitate scoping (for clarity in code).
+ */
+class Utilities
+{
+  public:
+    template <typename T>
+    static bool contains(const std::vector<T>& vec, const T& val)
+    {
+        return std::find(vec.begin(), vec.end(), val) != vec.end();
+    }
+	
+    /*
+     * @return: maximum width required for the keys; ensures even columnar output
+     * 
+     * The datatype of the values is inconsequential.
+     */
+    template <typename T, typename T2>
+    static unsigned maxKeyWidth(const std::map<T, T2>& m)
+    {
+        unsigned max = 0;
+        for (auto it = m.begin(); it != m.end(); it++)
+        {
+            max = max > it->first.size() ? max : it->first.size();
+        }
+        return max;
+    }
+
+    void eatWhiteLines(std::istream& in)
+    {
+        while (isspace(in.peek()))
+        {
+            while (in.get() != '\n')
+            {
+            }
+        }
+    }
+
+    void eatWhiteToNewLineOrChar(std::istream& in)
+    {
+        for (char c = in.peek(); c != '\n' && isalnum(c); c = in.peek())
+        {
+            in.get();
+        }
+    }
+
+    /*
+     * Convert the given string to lower case (modifies input string)
+     */
+    static void tolower(std::string& s)
+    {
+        std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
+    }
+
+    /*
+     * Split string s into two halves by seeking the FIRST occurrence of delimiter
+     *
+     *      prefix<delim>suffix
+     * CTA: test if delimiter is never found
+     */
+    static void splitFirst(const std::string& s, std::string& prefix,
+                           std::string& suffix, const std::string& delimiter)
+    {
+        split(s.find(delimiter), delimiter.size(), s, prefix, suffix);
+    }
+
+    /*
+     * Split string s into two halves by seeking the LAST occurrence of delimiter
+     *
+     *      prefix<delim>suffix
+     * CTA: test if delimiter is never found
+     */
+    static void splitLast(const std::string& s, std::string& prefix,
+                          std::string& suffix, const std::string& delimiter)
+    {
+        split(s.rfind(delimiter), delimiter.size(), s, prefix, suffix);
+    }
+
+    /*
+     *  Mimic Python join function for strings
+     */
+    template<class T>
+    static std::string join(const std::string& delim, const T& items)
+    {
+        std::string s = "";
+
+        for (const auto& item : items)
+        {
+            if (!s.empty()) s += delim;
+            s += item;
+        }
+
+        return s;
+    }
+
+  private:
+    // private function to help splitting
+    // _____XXXXXX____
+    //      ^     ^
+    //      |     | leftEnd + gap
+    //      |
+    //      leftEnd
+    //
+    static void split(size_t leftEnd, size_t gap, const std::string& s, std::string& prefix, std::string& suffix)
+    {
+        if (leftEnd >= std::string::npos)
+        {
+            prefix = s;
+            suffix = "";
+            return;
+        }
+
+        if (leftEnd + gap >= std::string::npos)
+        {
+            prefix = s.substr(leftEnd);
+            suffix = "";
+            return;
+        }
+
+        prefix = s.substr(0, leftEnd);
+        suffix = s.substr(leftEnd + gap);
+    }
+};
+
+//
+// v1.0
+//
+#include <cmath>
+#include <iostream>
 
 using namespace std;
 
