@@ -167,6 +167,7 @@ public:
         
         Utilities::tolower(preDash);
         if (preDash == Constants::BRICK_PREFIX) return Constants::FRAGMENT_TYPE::BRICK;
+        if (preDash == Constants::RIGID_PREFIX) return Constants::FRAGMENT_TYPE::BRICK;
         if (preDash == Constants::LINKER_PREFIX) return Constants::FRAGMENT_TYPE::LINKER;
         if (preDash == Constants::FREE_ATOM_PREFIX) return Constants::FRAGMENT_TYPE::FREE_ATOM;
 

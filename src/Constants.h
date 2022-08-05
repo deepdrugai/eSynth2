@@ -77,13 +77,13 @@ class Constants
 
     static const std::vector<std::string> ACCEPTABLE_INPUT_FILE_SUBSTRS;
 
-    typedef enum FRAGMENT_TYPE
+    typedef enum
     {
         LINKER,
         BRICK,
         FREE_ATOM,
         ERROR
-    };
+    } FRAGMENT_TYPE;
 
 
     //

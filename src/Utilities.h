@@ -28,6 +28,7 @@
 #include <cctype>
 #include <string>
 #include <numeric>
+#include <map>
 
 /*
  * A class to facilitate scoping (for clarity in code).

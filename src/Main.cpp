@@ -25,7 +25,6 @@
 #include <cstdlib>
 #include <cctype>
 #include <mcheck.h>
-#include <new> // bad_array_new_length exception
 
 //
 // Open Babel
@@ -170,7 +169,7 @@ void addMolecule(char type, Molecule* molecule)
 	}
 }
 
-void readMoleculeFile(const char* fileName)
+void readMoleculeFile(const char* fileName, Constants::FRAGMENT_TYPE fType)
 {
 	//
 	// Input parser conversion functionality for Open babel
@@ -213,7 +212,7 @@ void readMoleculeFile(const char* fileName)
 
 		// Assign all needed data to the molecule (comment data)
 		Molecule* local = createLocalMolecule(mol,
-			tolower(fileName[0]) == 'l' ? LINKER : BRICK,
+			fType == Constants::FRAGMENT_TYPE::BRICK ? BRICK : LINKER,
 			name, suffix);
 
 		//std::cerr << *local << std::endl;
@@ -249,25 +248,14 @@ void readMoleculeFile(const char* fileName)
 //
 // Parse each input data files
 //
-bool readInputFiles(const std::vector<std::string>& infiles)
+bool readInputFiles(const std::map<std::string, Constants::FRAGMENT_TYPE>& infiles)
 {
-	//
-	// CTA: This will need to change for v2.0
-	//
-	for (auto const& infile : infiles)
-	{
-		// char charPrefix = tolower((*it)[0]);
-		// if (charPrefix != 'l' && charPrefix != 'r' && charPrefix != 'b')
-		// {
-			// cerr << "Unexpected file prefix: \'" << (*it)[0]
- 				 // << "\' with file " << *it << endl;
-			// return false;
-		// }
+    for (auto const& infile : infiles)
+	  {
+       readMoleculeFile(infile.first.c_str(), infile.second);
+	  }
 
-		readMoleculeFile(infile.c_str());
-	}
-
-	return true;
+    return true;
 }
 
 #include "InputFacade.h"

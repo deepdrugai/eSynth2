@@ -45,8 +45,8 @@ class OBWriter
 
     // static void InitializeFile(const char* fileName);
     void OutputMoleculeInternal(unsigned int, unsigned int, Molecule&);
-    void OutputMoleculeExternalSMI(Molecule&);
-    void OutputMoleculeExternalSDF(Molecule&);
+//    void OutputMoleculeExternalSMI(Molecule&);
+    //void OutputMoleculeExternalSDF(Molecule&);
     void OutputMoleculeAppendExternalSMI(const std::string& smi);
     void OutputMoleculeAppendExternalSDF(Molecule&);
     static int OutputSingleMolecule(std::string smiMol);

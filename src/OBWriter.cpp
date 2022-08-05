@@ -261,76 +261,76 @@ num_blocked--;
 
 // ****************************************************************************
 
-void OBWriter::OutputMoleculeExternalSMI(Molecule& mol)
-{
-    // (a) create temp file
-    char tmpFileNameBuff[32]; // temp file name
-    int filedes = -1; // file descriptor
+// void OBWriter::OutputMoleculeExternalSMI(Molecule& mol)
+// {
+//     // (a) create temp file
+//     char tmpFileNameBuff[32]; // temp file name
+//     int filedes = -1; // file descriptor
 
-    // memset the buffer to 0 (thread-safe)
-    memset(tmpFileNameBuff, 0, sizeof(tmpFileNameBuff));
+//     // memset the buffer to 0 (thread-safe)
+//     memset(tmpFileNameBuff, 0, sizeof(tmpFileNameBuff));
 
-    // Copy the dir/template the buffer// (thread-safe)
-    std::string shmpath = Options::shmPath;
-    shmpath += "chemTmpFile-XXXXXX.smi";
-    strncpy(tmpFileNameBuff, shmpath.c_str(), shmpath.size());
+//     // Copy the dir/template the buffer// (thread-safe)
+//     std::string shmpath = Options::shmPath;
+//     shmpath += "chemTmpFile-XXXXXX.smi";
+//     strncpy(tmpFileNameBuff, shmpath.c_str(), shmpath.size());
 
-    // generate unique non existing name from template, afterwards, buffer
-    // contains actual file name(thread-safe)
-    filedes = mkstemps(tmpFileNameBuff, 4);
-    if(filedes < 1)
-    {
-        std::cerr << "Creation of temp file failed" << std::endl;
-        return;
-    }
+//     // generate unique non existing name from template, afterwards, buffer
+//     // contains actual file name(thread-safe)
+//     filedes = mkstemps(tmpFileNameBuff, 4);
+//     if(filedes < 1)
+//     {
+//         std::cerr << "Creation of temp file failed" << std::endl;
+//         return;
+//     }
 
-    // (b) write SMI into file
-    FILE *tmp_file; // file pointer
-    tmp_file = fdopen(filedes, "w"); // 'front end' file pointer made from file descriptor
-    std::string smi = "Needs fixing.";
-    // mol.getSMI(smi);
-    fputs(smi.c_str(), tmp_file); // write to tmp file (fputs requires file pointer)
-    fclose(tmp_file); // no longer need front end, get rid of it
+//     // (b) write SMI into file
+//     FILE *tmp_file; // file pointer
+//     tmp_file = fdopen(filedes, "w"); // 'front end' file pointer made from file descriptor
+//     std::string smi = "Needs fixing.";
+//     // mol.getSMI(smi);
+//     fputs(smi.c_str(), tmp_file); // write to tmp file (fputs requires file pointer)
+//     fclose(tmp_file); // no longer need front end, get rid of it
 
-    //
-    // Call external instance of compliance writer
-    //
-    // (a) set up function call, we suppress all stderr messages with 2> and
-    // keep stdout with output.
-    std::string call = Options::writerPath;
-    call += COMPLIANT_EXE + " ";
-    call += string(tmpFileNameBuff) + " molecules.smi";
-    std::cerr << "Calling: " << call << std::endl;
+//     //
+//     // Call external instance of compliance writer
+//     //
+//     // (a) set up function call, we suppress all stderr messages with 2> and
+//     // keep stdout with output.
+//     std::string call = Options::writerPath;
+//     call += COMPLIANT_EXE + " ";
+//     call += string(tmpFileNameBuff) + " molecules.smi";
+//     std::cerr << "Calling: " << call << std::endl;
 
-    // (b) Spawn obgen process to work on the temp file. resulting SDF in string 'result'
-    pthread_mutex_lock(&writer_popen_lock);
-    FILE* pipe = popen(&call[0], "r"); // not clear whether this is thread safe
-    pthread_mutex_unlock(&writer_popen_lock);
+//     // (b) Spawn obgen process to work on the temp file. resulting SDF in string 'result'
+//     pthread_mutex_lock(&writer_popen_lock);
+//     FILE* pipe = popen(&call[0], "r"); // not clear whether this is thread safe
+//     pthread_mutex_unlock(&writer_popen_lock);
 
-    if (!pipe)
-    {
-        std::cerr << "Creation of obgen caller pipe failed" << std::endl;
-        return;
-    }
+//     if (!pipe)
+//     {
+//         std::cerr << "Creation of obgen caller pipe failed" << std::endl;
+//         return;
+//     }
 
-    char data_buffer[128];
-    std::string result = "";
-    while(!feof(pipe)) {
-        if(fgets(data_buffer, 128, pipe) != NULL)
-                result += data_buffer;
-    }
+//     char data_buffer[128];
+//     std::string result = "";
+//     while(!feof(pipe)) {
+//         if(fgets(data_buffer, 128, pipe) != NULL)
+//                 result += data_buffer;
+//     }
 
-    pthread_mutex_lock(&smi_popen_lock);
-    pclose(pipe); // not clear wether is thread safe
-    pthread_mutex_unlock(&smi_popen_lock);
+//     pthread_mutex_lock(&smi_popen_lock);
+//     pclose(pipe); // not clear wether is thread safe
+//     pthread_mutex_unlock(&smi_popen_lock);
 
-    // (c) close and unlink temporary file
-    close(filedes);
-    unlink(tmpFileNameBuff); // even if called, file won't actually delete until file is closed
-    // Removal of the temporary file.
-    std::cerr << "Removing: " << tmpFileNameBuff << std::endl;
-    remove(tmpFileNameBuff);
-}
+//     // (c) close and unlink temporary file
+//     close(filedes);
+//     unlink(tmpFileNameBuff); // even if called, file won't actually delete until file is closed
+//     // Removal of the temporary file.
+//     std::cerr << "Removing: " << tmpFileNameBuff << std::endl;
+//     remove(tmpFileNameBuff);
+// }
 
 // ****************************************************************************
 
@@ -434,92 +434,92 @@ void OBWriter::OutputMoleculeAppendExternalSDF(Molecule& mol)
     pthread_mutex_unlock(&sdf_output_file_lock);
 }
 
-// ****************************************************************************
+// // ****************************************************************************
 
-void OBWriter::OutputMoleculeExternalSDF(Molecule& mol)
-{
+// void OBWriter::OutputMoleculeExternalSDF(Molecule& mol)
+// {
 
-    // (a) create temp file
-    char tmpFileNameBuff[32]; // temp file name
-    int filedes = -1; // file descriptor
+//     // (a) create temp file
+//     char tmpFileNameBuff[32]; // temp file name
+//     int filedes = -1; // file descriptor
 
-    // memset the buffer to 0 (thread-safe)
-    memset(tmpFileNameBuff, 0, sizeof(tmpFileNameBuff));
+//     // memset the buffer to 0 (thread-safe)
+//     memset(tmpFileNameBuff, 0, sizeof(tmpFileNameBuff));
 
-    pthread_mutex_lock(&sdf_output_file_lock);
+//     pthread_mutex_lock(&sdf_output_file_lock);
 
-    // Copy the dir/template the buffer// (thread-safe)
-    std::string shmpath = Options::shmPath;
-    shmpath += "chemTmpFile-XXXXXX.sdf";
-    strncpy(tmpFileNameBuff, shmpath.c_str(), shmpath.size());
+//     // Copy the dir/template the buffer// (thread-safe)
+//     std::string shmpath = Options::shmPath;
+//     shmpath += "chemTmpFile-XXXXXX.sdf";
+//     strncpy(tmpFileNameBuff, shmpath.c_str(), shmpath.size());
 
-    // generate unique non existing name from template, afterwards, buffer
-    // contains actual file name(thread-safe)
-    filedes = mkstemps(tmpFileNameBuff, 4);
+//     // generate unique non existing name from template, afterwards, buffer
+//     // contains actual file name(thread-safe)
+//     filedes = mkstemps(tmpFileNameBuff, 4);
 
-    if(filedes < 1)
-    {
-        std::cerr << "Creation of temp file failed" << std::endl;
-        return;
-    }
+//     if(filedes < 1)
+//     {
+//         std::cerr << "Creation of temp file failed" << std::endl;
+//         return;
+//     }
 
 
-    // (b) write SDF into file
-    FILE *tmp_file; // file pointer
-    tmp_file = fdopen(filedes, "w"); // 'front end' file pointer made from file descriptor
-    std::string sdf;
-    mol.WriteToOpenBabelFormat(sdf);
+//     // (b) write SDF into file
+//     FILE *tmp_file; // file pointer
+//     tmp_file = fdopen(filedes, "w"); // 'front end' file pointer made from file descriptor
+//     std::string sdf;
+//     mol.WriteToOpenBabelFormat(sdf);
 
-    if (tmp_file == NULL) 
-    {
-        std:: cerr << "|" << tmpFileNameBuff << "|" << std::endl;
-        throw "Problem.";
-    }
-    fputs(sdf.c_str(), tmp_file); // write to tmp file (fputs requires file pointer)
-    fclose(tmp_file); // no longer need front end, get rid of it
+//     if (tmp_file == NULL) 
+//     {
+//         std:: cerr << "|" << tmpFileNameBuff << "|" << std::endl;
+//         throw "Problem.";
+//     }
+//     fputs(sdf.c_str(), tmp_file); // write to tmp file (fputs requires file pointer)
+//     fclose(tmp_file); // no longer need front end, get rid of it
 
-    //
-    // Call external instance of compliance writer
-    //
-    // (a) set up function call, we suppress all stderr messages with 2> and
-    // keep stdout with output.
-    std::string call = Options::writerPath;
-    call += COMPLIANT_EXE + " ";
-    call += string(tmpFileNameBuff) + " molecules.smi";
-    std::cerr << "Calling: " << call << std::endl;
+//     //
+//     // Call external instance of compliance writer
+//     //
+//     // (a) set up function call, we suppress all stderr messages with 2> and
+//     // keep stdout with output.
+//     std::string call = Options::writerPath;
+//     call += COMPLIANT_EXE + " ";
+//     call += string(tmpFileNameBuff) + " molecules.smi";
+//     std::cerr << "Calling: " << call << std::endl;
 
-    // (b) Spawn obgen process to work on the temp file. resulting SDF in string 'result'
-    pthread_mutex_lock(&writer_popen_lock);
-    FILE* pipe = popen(&call[0], "r"); // not clear whether this is thread safe
-    pthread_mutex_unlock(&writer_popen_lock);
+//     // (b) Spawn obgen process to work on the temp file. resulting SDF in string 'result'
+//     pthread_mutex_lock(&writer_popen_lock);
+//     FILE* pipe = popen(&call[0], "r"); // not clear whether this is thread safe
+//     pthread_mutex_unlock(&writer_popen_lock);
 
-    if (!pipe)
-    {
-        std::cerr << "Creation of obgen caller pipe failed" << std::endl;
-        return;
-    }
+//     if (!pipe)
+//     {
+//         std::cerr << "Creation of obgen caller pipe failed" << std::endl;
+//         return;
+//     }
 
-    char data_buffer[128];
-    std::string result = "";
-    while(!feof(pipe)) {
-        if(fgets(data_buffer, 128, pipe) != NULL)
-                result += data_buffer;
-    }
+//     char data_buffer[128];
+//     std::string result = "";
+//     while(!feof(pipe)) {
+//         if(fgets(data_buffer, 128, pipe) != NULL)
+//                 result += data_buffer;
+//     }
 
-    pthread_mutex_lock(&smi_popen_lock);
-    pclose(pipe); // not clear wether is thread safe
-    pthread_mutex_unlock(&smi_popen_lock);
+//     pthread_mutex_lock(&smi_popen_lock);
+//     pclose(pipe); // not clear wether is thread safe
+//     pthread_mutex_unlock(&smi_popen_lock);
 
-    // (c) close and unlink temporary file
-    close(filedes);
-    unlink(tmpFileNameBuff); // even if called, file won't actually delete until file is closed
+//     // (c) close and unlink temporary file
+//     close(filedes);
+//     unlink(tmpFileNameBuff); // even if called, file won't actually delete until file is closed
 
-    // Removal of the temporary file.
-    std::cerr << "Removing: " << tmpFileNameBuff << std::endl; 
-    remove(tmpFileNameBuff);
+//     // Removal of the temporary file.
+//     std::cerr << "Removing: " << tmpFileNameBuff << std::endl; 
+//     remove(tmpFileNameBuff);
 
-    pthread_mutex_unlock(&sdf_output_file_lock);
-}
+//     pthread_mutex_unlock(&sdf_output_file_lock);
+// }
 
 
 // ****************************************************************************
