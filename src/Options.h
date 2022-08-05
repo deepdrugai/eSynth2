@@ -58,6 +58,7 @@ struct Options
     //
     // v2.0 Constants
     //
+    static void init(); // constructor-like funtion for default initializations
     static bool SMI_ONLY;
     static bool SERIAL;
 

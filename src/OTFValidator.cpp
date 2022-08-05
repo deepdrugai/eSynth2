@@ -67,26 +67,6 @@ void OTFValidator::validate(const std::string& smi)
 	//writeToFile(); 
 }
 
-// CHANGE: reading file in OTFValidators: may read multiple validation molecules 6/30/2022
-// Read in the validation file in mol2 and store the information in validationInfo
-//
-// void OTFValidator::readValidationFile()
-// {
-// 	std::ifstream infile;
-// 	std::string line;
-
-// 	// Open the validation file 
-// 	infile.open(_validationFile);
-
-// 	// Read each line of mol2 file and add it to validInfo string 
-// 	while (!infile.eof() && !infile.fail())
-// 	{
-// 		getline(infile, line);
-// 		_validationInfo += line + "\n";
-// 	}
-	// std::cout << "Validation Information:\n" << validInfo << std::endl; 
-//}
-
 //
 // Create the fingerprint for the validation moelcule
 // 

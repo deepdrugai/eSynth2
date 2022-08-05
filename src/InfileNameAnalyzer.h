@@ -51,7 +51,7 @@ namespace fs = std::experimental::filesystem;
 class InfileNameAnalyzer
 {
   protected:
-    std::vector<std::string> _valid;
+    std::map<std::string, Constants::FRAGMENT_TYPE> _valid;
     std::vector<std::string> _invalid;
 
   public:
@@ -60,7 +60,7 @@ class InfileNameAnalyzer
         analyze(names);
     }
 
-    std::vector<std::string> getValidFiles() const { return _valid; }
+    std::map<std::string, Constants::FRAGMENT_TYPE> getValidFiles() const { return _valid; }
     std::vector<std::string> getInvalidFiles() const { return _invalid; }
 
   protected:
@@ -68,13 +68,15 @@ class InfileNameAnalyzer
     //
     // Split the files into valid and invalid
     //
-    void analyze(const std::vector<std::string> names)
+    void analyze(const std::vector<std::string>& names)
     {
         for (std::vector<std::string>::const_iterator it = names.begin(); it != names.end(); it++)
         {
             fs::path p = *it;
 
-            if (isValidFileName(p)) _valid.push_back(*it);
+            Constants::FRAGMENT_TYPE fType = isValidFileName(p);
+            
+            if (fType != Constants::FRAGMENT_TYPE::ERROR) _valid[*it] = fType;
             else _invalid.push_back(*it);
         }
     }
@@ -96,12 +98,12 @@ public:
      * 
      * Assumes input of a file name (no path information)
      */
-    static bool isValidFileName(const fs::path& p)
+    static Constants::FRAGMENT_TYPE isValidFileName(const fs::path& p)
     {
         if (p.empty())
         {
             std::cerr << "This is odd; no input file name specified: " << p << std::endl;
-            return false;
+            return Constants::FRAGMENT_TYPE::ERROR;
         }
 
         if (!hasValidExtension(p))
@@ -110,16 +112,18 @@ public:
                       << Constants::INPUT_SDF_FILE_EXTENSION
                       << " as required." << std::endl;
 
-            return false;
+            return Constants::FRAGMENT_TYPE::ERROR;
         }
 
         // l- b- r- are unambiguous
-        if (hasUnambiguousValidPrefix(p.filename().string())) return true;
+        Constants::FRAGMENT_TYPE fType = hasUnambiguousValidPrefix(p.filename().string());
+        if (fType != Constants::FRAGMENT_TYPE::ERROR) return fType;
 
         // u- all- are ambiguous
-        if (!hasAmbiguousValidPrefix(p.filename().string())) return false;
+        if (!hasAmbiguousValidPrefix(p.filename().string())) return Constants::FRAGMENT_TYPE::ERROR;
 
-        if (hasValidInternalIdentifier(p.stem().string())) return true;
+        fType = hasValidInternalIdentifier(p.stem().string());
+        if (fType != Constants::FRAGMENT_TYPE::ERROR) return fType;
 
         // Otherwise we have an error setting
         std::string substrs = Utilities::join(", ", Constants::ACCEPTABLE_INPUT_FILE_SUBSTRS);
@@ -129,7 +133,7 @@ public:
                   << "] input file must have an unambiguous prefix [" << prefixes
                   << "]" << std::endl;
 
-        return false;
+        return Constants::FRAGMENT_TYPE::ERROR;
     }
 
     //
@@ -151,14 +155,22 @@ public:
     //     'l' (linker)
     //     'r' (rigid) --to be consistent with eSynth v1.0
     //
-    static bool hasUnambiguousValidPrefix(const std::string& name)
+    static Constants::FRAGMENT_TYPE hasUnambiguousValidPrefix(const std::string& name)
     {
         std::string preDash = "";
         std::string postDash = "";
         Utilities::splitFirst(name, preDash, postDash, "-");
 
         // Is the prefix of the given file in our accepted list?
-        return Utilities::contains(Constants::UNAMBIGUOUS_ACCEPTABLE_INPUT_FILE_PREFIXES, preDash);
+        if (!Utilities::contains(Constants::UNAMBIGUOUS_ACCEPTABLE_INPUT_FILE_PREFIXES, preDash))
+
+        
+        Utilities::tolower(preDash);
+        if (preDash == Constants::BRICK_PREFIX) return Constants::FRAGMENT_TYPE::BRICK;
+        if (preDash == Constants::LINKER_PREFIX) return Constants::FRAGMENT_TYPE::LINKER;
+        if (preDash == Constants::FREE_ATOM_PREFIX) return Constants::FRAGMENT_TYPE::FREE_ATOM;
+
+        return Constants::FRAGMENT_TYPE::ERROR;
     }
 
     //
@@ -180,15 +192,21 @@ public:
     //     brick
     //     linker
     //
-    static bool hasValidInternalIdentifier(const std::string& prefix)
+    static Constants::FRAGMENT_TYPE hasValidInternalIdentifier(const std::string& prefix)
     {
-        // Check for a valid substring
-        for (auto const& ok_substr : Constants::ACCEPTABLE_INPUT_FILE_SUBSTRS)
-        {
-            if (prefix.find(ok_substr) != std::string::npos) return true;
-        }
+        std::string copy = prefix;
+        Utilities::tolower(copy);
 
-        return false;
+        if (copy.find(Constants::ACCEPTABLE_INPUT_LINKER_FILE_SUBSTR) != std::string::npos)
+            return Constants::FRAGMENT_TYPE::LINKER;
+
+        else if (copy.find(Constants::ACCEPTABLE_INPUT_BRICK_FILE_SUBSTR) != std::string::npos)
+            return Constants::FRAGMENT_TYPE::BRICK;
+
+        else if (copy.find(Constants::ACCEPTABLE_INPUT_FREE_ATOM_FILE_SUBSTR) != std::string::npos)
+            return Constants::FRAGMENT_TYPE::FREE_ATOM;
+
+        return Constants::FRAGMENT_TYPE::ERROR;
     }
 };
 

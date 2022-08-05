@@ -23,6 +23,39 @@
 //
 // v2.0
 //
+// constructor-like funtion for default initializations
+void Options::init()
+{
+    Options::SMI_ONLY = false;
+    Options::SERIAL = true;
+    Options::THREADED = false;
+
+    Options::OUTPUT_FILE = Constants::DEFAULT_OUTPUT_FILE;
+    Options::OUTPUT_SMI_FILE = Constants::DEFAULT_OUTPUT_SMI_FILE;
+    Options::OUTPUT_DIRECTORY = Constants::DEFAULT_OUTPUT_DIR;
+
+    Options::OTF_VALIDATE = false;
+    Options::VALIDATION_FILE = "";
+
+    Options::TANIMOTO = Constants::DEFAULT_TANIMOTO;
+    Options::PROBABILITY_PRUNE_LEVEL_START = Constants::DEFAULT_PROBABILITY_PRUNE_LEVEL_START;
+    Options::USER_DEFINED_LEVEL_BOUND = Constants::MAX_SYNTH_LEVEL_BOUND;
+
+
+    //
+    // v1.0
+    //
+    Options::shmPath = "/run/shm";
+    Options::writerPath = "./";
+    Options::THREADED = false;
+
+    Options::OPENBABEL = true;
+
+    Options::USE_LIPINSKI = false;
+    Options::OBGEN_THREAD_POOL_SIZE = 15;
+    Options::SA_THRESHOLD = 5.0;
+}
+
 bool Options::SMI_ONLY = false;
 bool Options::SERIAL = true;
 
@@ -51,6 +84,3 @@ bool Options::USE_LIPINSKI = false;
 unsigned Options::OBGEN_THREAD_POOL_SIZE = 15;
 //unsigned Options::SMI_LEVEL_BOUND = 3;
 double Options::SA_THRESHOLD = 5.0;
-//std::string Options::PYTHON_MODULE_NAME;
-//std::string Options::PYTHON_FUNCTION_NAME;
-

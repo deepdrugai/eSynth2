@@ -9,7 +9,14 @@
 OTFValidators::OTFValidators(const std::string& validFile) :
 	_validationFile{validFile}
 {
-  readValidationFile();
+    if (!Options::OTF_VALIDATION) return;
+
+    if (validFile == "")
+    {
+		std::cerr << "Validation file name is not valid: \"\"" <, std::endl; 
+    }
+
+    readValidationFile();
 }
 
 OTFValidators::~OTFValidators()
@@ -21,6 +28,8 @@ OTFValidators::~OTFValidators()
 
 void OTFValidators::validate(const std::string& smi)
 {
+    if (!Options::OTF_VALIDATION) return;
+
 	for (OTFValidator* vali : _validators)
 	{
 		vali->validate(smi); 

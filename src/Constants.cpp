@@ -83,10 +83,12 @@ const std::string Constants::INPUT_SDF_FILE_EXTENSION = "sdf";
 const std::string Constants::BRICK_PREFIX = "b";
 const std::string Constants::RIGID_PREFIX = "r";
 const std::string Constants::LINKER_PREFIX = "l";
+const std::string Constants::FREE_ATOM_PREFIX = "fa";
 const std::vector<std::string>
   Constants::UNAMBIGUOUS_ACCEPTABLE_INPUT_FILE_PREFIXES = { Constants::BRICK_PREFIX,
                                                             Constants::RIGID_PREFIX,
-                                                            Constants::LINKER_PREFIX };
+                                                            Constants::LINKER_PREFIX,
+                                                            Constants::FREE_ATOM_PREFIX };
 const std::string Constants::UNIQUE_FRAGMENT_PREFIX = "u";
 const std::string Constants::ALL_FRAGMENT_PREFIX = "all";
 const std::vector<std::string>
@@ -95,13 +97,15 @@ const std::vector<std::string>
 
 const std::string Constants::ACCEPTABLE_INPUT_LINKER_FILE_SUBSTR = "linker";
 const std::string Constants::ACCEPTABLE_INPUT_BRICK_FILE_SUBSTR = "brick";
+const std::string Constants::ACCEPTABLE_INPUT_FREE_ATOM_FILE_SUBSTR = "free";
 
 const std::vector<std::string> Constants::ACCEPTABLE_INPUT_FILE_SUBSTRS = { Constants::ACCEPTABLE_INPUT_LINKER_FILE_SUBSTR,
+                                                                            Constants::ACCEPTABLE_INPUT_BRICK_FILE_SUBSTR,
                                                                             Constants::ACCEPTABLE_INPUT_BRICK_FILE_SUBSTR };
 
-const std::string Constants::DEFAULT_OUTPUT_SMI_FILE = "molecules.smi";
-const std::string Constants::DEFAULT_OUTPUT_FILE = "molecules.sdf";
-const std::string Constants::DEFAULT_OUTPUT_DIR = "output";
+std::string Constants::DEFAULT_OUTPUT_FILE = "molecules.sdf";
+std::string Constants::DEFAULT_OUTPUT_SMI_FILE = "molecules.smi";
+std::string Constants::DEFAULT_OUTPUT_DIR = "output";
 
 double Constants::DEFAULT_TANIMOTO = 0.95;
 

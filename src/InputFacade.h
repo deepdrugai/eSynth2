@@ -68,7 +68,7 @@ class InputFacade
         //
         InfileNameAnalyzer nameAnalyzer{ eAnalyzer.getValidFiles() };
 
-        fileEmitter("The following files do not conform to eSynth input naming requirements (and will be ignored):",
+        generalFileEmitter("The following files do not conform to eSynth input naming requirements (and will be ignored):",
                     nameAnalyzer.getInvalidFiles());
 
         // Our final list of input fragment files
@@ -80,8 +80,7 @@ class InputFacade
             return false;
         }
 
-        fileEmitter("The following fragment files conform to eSynth requirements and will be parsed:",
-                    _filteredFiles);
+        fragmentFileEmitter("The following fragment files conform to eSynth requirements and will be parsed:");
 
         //
         // Parse the input fragment files to acquire the sets of bricks and linkers
@@ -100,15 +99,16 @@ class InputFacade
     std::vector<Brick*> getBricks() const { return _bricks; }
     std::vector<Linker*> getLinekrs() const { return _linkers; }
 
-    std::vector<std::string> getFiles() const { return _filteredFiles; }
+    std::map<std::string, Constants::FRAGMENT_TYPE> getFiles() const { return _filteredFiles; }
 
   protected:
     int _argc;
     const char** _argv;
 
-    std::vector<std::string> _filteredFiles;
+    std::map<std::string, Constants::FRAGMENT_TYPE> _filteredFiles;
 
-    void fileEmitter(const std::string& msg, std::vector<std::string> vec) const
+    void generalFileEmitter(const std::string& msg,
+                            const std::vector<std::string>& vec) const
     {
         if (vec.empty()) return;
 
@@ -116,6 +116,35 @@ class InputFacade
         for (auto const& value : vec)
         {
             std::cerr << '\t' << value << std::endl;
+        }
+    }
+
+    void fragmentFileEmitter(const std::string& msg) const
+    {
+        if (_filteredFiles.empty()) return;
+
+        std::cout << msg << std::endl;
+
+        unsigned maxW = Utilities::maxKeyWidth(_filteredFiles);
+        for (auto const& f : _filteredFiles)
+        {
+            std::string fType;
+            switch (f.second)
+            {
+               case Constants::FRAGMENT_TYPE::BRICK: 
+                   fType = Constants::ACCEPTABLE_INPUT_BRICK_FILE_SUBSTR;
+                   break;
+               case Constants::FRAGMENT_TYPE::LINKER:
+                   fType = Constants::ACCEPTABLE_INPUT_LINKER_FILE_SUBSTR;
+                   break;
+               case Constants::FRAGMENT_TYPE::FREE_ATOM:
+                   fType = Constants::ACCEPTABLE_INPUT_FREE_ATOM_FILE_SUBSTR + "(treated as linker)";
+                   break;
+               default:
+                   fType = "ERROR";
+            }
+
+            std::cerr << '\t' << std::left << std::setw(maxW + 4) << f.first << '\t' << fType << std::endl;
         }
     }
 };

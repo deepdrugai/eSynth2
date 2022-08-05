@@ -40,6 +40,22 @@ class Utilities
     {
         return std::find(vec.begin(), vec.end(), val) != vec.end();
     }
+	
+    /*
+     * @return: maximum width required for the keys; ensures even columnar output
+     * 
+     * The datatype of the values is inconsequential.
+     */
+    template <typename T, typename T2>
+    static unsigned maxKeyWidth(const std::map<T, T2>& m)
+    {
+        unsigned max = 0;
+        for (auto it = m.begin(); it != m.end(); it++)
+        {
+            max = max > it->first.size() ? max : it->first.size();
+        }
+        return max;
+    }
 
     void eatWhiteLines(std::istream& in)
     {

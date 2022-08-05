@@ -448,7 +448,7 @@ void Instantiator::HandleNewMolecules(std::queue<Molecule*>& worklist,
 		std::string smi = (*e_it)->consequent->ConstructSMI();
 
 		// Validate 
-		on_the_fly_validators->validate(smi);
+		if (Options::OTF_VALIDATE && on_the_fly_validators) on_the_fly_validators->validate(smi);
 
 		// Add the consequent node to the graph directly.
 		// std::pair<unsigned int, bool> addedResult = AddNode(minMol, level);

@@ -189,7 +189,7 @@ void readMoleculeFile(const char* fileName)
 	std::string prefix = "";
 	std::string suffix = "";
 
-	while (splitMolecule(infile, name, prefix, suffix))
+	while (!infile.eof() && infile.good() && splitMolecule(infile, name, prefix, suffix))
 	{
 		//
 		// If the name of molecule is not given, overwrite it with
@@ -285,6 +285,7 @@ int main(int argc, const char** argv)
 	  // The input facade:
     // (1) identifies and set Options in the static Options class
     // (2) Identifies legitimate, existing input fragment files 
+    Options::init();
     InputFacade inf { argc, argv };
 
     // If usage or versioning is requested.
@@ -301,6 +302,8 @@ int main(int argc, const char** argv)
     // system("rm Validation_logfile.txt");
 
     if (!readInputFiles(inf.getFiles())) return 1;
+
+    std::cout << "Input read." << std::endl;
 
 	//
 	// Bypass synthesis for acquiring information about the input fragments.
@@ -324,22 +327,15 @@ int main(int argc, const char** argv)
 	OTFValidators validators(Options::VALIDATION_FILE);
 
 	// The main object that performs synthesis.
-	// CHANGE: include validator object  
 	Instantiator instantiator(writer, cout, &validators);
 
-    // write the result of tc analysis once after validate all molecules 
-	validators.writeToFiles();
-
-	// Instantiation build the hypergraph; this is the main data structure for the
-	// resultant molecules.
-	// Also creates the hypergraph using threaded or non-threaded techniques.
-	// MoleculeHashHypergraph* graph = 0;
+	// Run synthesis
 	if (Options::THREADED) instantiator.ThreadedInstantiate(linkers, bricks);
 	else if (Options::SERIAL) instantiator.SerialInstantiate(linkers, bricks);
 
-	// std::cout << "Hypergraph contains (" << graph->currentSize()
-	//           << ", " << graph->nonKilledSize()<< ") nodes" << std::endl;
-
+    // With instantiation complete, output the TC-based analysis of generated
+    // molecule similarity
+	validators.writeToFiles();
 
 	unsigned inc = instantiator.getIncluded();
 	unsigned exc = instantiator.getExcluded();

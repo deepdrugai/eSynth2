@@ -102,13 +102,6 @@ OBWriter::~OBWriter()
 void OBWriter::InitializeFile(const std::string& outFile)
 {
     outFileName = outFile;
-
-    /*
-
-    out.open(outFile.c_str());
-
-    if (out.fail()) throw "Output stream opening failed.";
-    */
 }
 
 
@@ -132,11 +125,6 @@ void OBWriter::IndicateSynthesisStarted()
     // Construct the actual directory
     //
     std::string theDir = Options::OUTPUT_DIRECTORY;
-    // if (Options::OUTPUT_DIR_SUFFIX != "")
-    // {
-        // theDir += "_";
-        // theDir += Options::OUTPUT_DIR_SUFFIX;
-    // }
 
     std::cout << "Will output to directory: " << theDir << std::endl;
 

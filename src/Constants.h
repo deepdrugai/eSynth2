@@ -15,6 +15,11 @@
  *  along with esynth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * eSynth 2.0
+ * Author: C. Alvin 7/27/2022
+ */
+
 #ifndef _CONSTANTS_GUARD
 #define _CONSTANTS_GUARD 1
 
@@ -60,6 +65,7 @@ class Constants
     static const std::string BRICK_PREFIX;
     static const std::string RIGID_PREFIX;
     static const std::string LINKER_PREFIX;
+    static const std::string FREE_ATOM_PREFIX;
     static const std::string UNIQUE_FRAGMENT_PREFIX;
     static const std::string ALL_FRAGMENT_PREFIX;
     static const std::vector<std::string> UNAMBIGUOUS_ACCEPTABLE_INPUT_FILE_PREFIXES;
@@ -67,16 +73,26 @@ class Constants
 
     static const std::string ACCEPTABLE_INPUT_LINKER_FILE_SUBSTR;
     static const std::string ACCEPTABLE_INPUT_BRICK_FILE_SUBSTR;
+    static const std::string ACCEPTABLE_INPUT_FREE_ATOM_FILE_SUBSTR;
 
     static const std::vector<std::string> ACCEPTABLE_INPUT_FILE_SUBSTRS;
 
-    static const std::string DEFAULT_OUTPUT_FILE;
-	static const std::string DEFAULT_OUTPUT_SMI_FILE;
-    static const std::string DEFAULT_OUTPUT_DIR;
+    typedef enum FRAGMENT_TYPE
+    {
+        LINKER,
+        BRICK,
+        FREE_ATOM,
+        ERROR
+    };
+
 
     //
     // User-defined options
     //
+    static std::string DEFAULT_OUTPUT_FILE;
+    static std::string DEFAULT_OUTPUT_SMI_FILE;
+    static std::string DEFAULT_OUTPUT_DIR;
+
     static double DEFAULT_TANIMOTO;
 
     // upper bound for level-based threading synthesis
@@ -93,28 +109,23 @@ class Constants
     static double HBD_UPPERBOUND;
     static double HBA1_UPPERBOUND;
     static double LOGP_UPPERBOUND;
+    
+
+    const int NOT_FOUND = -1;
+
+
+    // Debugging constants
+    const bool DEBUG = true;
+
+    const bool g_debug_output = false;
+
+
+    const int THREAD_POOL_SIZE = 10;
+
+
+    // skip the entire synthesis, just output lipinski descriptors for
+    //  the input fragments to "initial_fragments_logfile.txt" and exit
+    const bool g_calculate_lipinski_descriptors_for_input_fragments_only = false;
 };
-
-
-
-const unsigned int null = 0;
-
-const std::string COMPLIANT_EXE = "compliantwriter";
-
-const int NOT_FOUND = -1;
-
-
-// Debugging constants
-const bool DEBUG = true;
-const bool HYPERGRAPH_CONSTR_DEBUG = true;
-const bool g_debug_output = false;
-
-
-const int THREAD_POOL_SIZE = 10;
-
-
-// skip the entire synthesis, just output lipinski descriptors for
-//  the input fragments to "initial_fragments_logfile.txt" and exit
-const bool g_calculate_lipinski_descriptors_for_input_fragments_only = false;
 
 #endif

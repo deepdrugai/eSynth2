@@ -174,7 +174,7 @@ class CommandLineParser
         std::cout << "The run will use the following command-line options; "
                   << "for unspecified arguments, default values are shown:" << std::endl;
 
-        unsigned maxW = maxKeyWidth(args);
+        unsigned maxW = Utilities::maxKeyWidth(args);
 
         for (auto it = args.begin(); it != args.end(); it++)
         {
@@ -398,7 +398,7 @@ class CommandLineParser
             << " may be executed with the following options:"
             << std::endl;
 
-        unsigned maxW = maxKeyWidth(Constants::USAGE_MAP);
+        unsigned maxW = Utilities::maxKeyWidth(Constants::USAGE_MAP);
 
         for (auto it = Constants::USAGE_MAP.begin(); it != Constants::USAGE_MAP.end(); it++)
         {
@@ -412,21 +412,6 @@ class CommandLineParser
     static void version()
     {
         std::cout << Constants::ESYNTH_VERSION << std::endl;
-    }
-
-  protected:
-    /*
-     * @return: maximum width required for the keys; ensures even columnar output
-     */
-    template <typename T>
-    static unsigned maxKeyWidth(const std::map<T, T>& m)
-    {
-        unsigned max = 0;
-        for (auto it = m.begin(); it != m.end(); it++)
-        {
-            max = max > it->first.size() ? max : it->first.size();
-        }
-        return max;
     }
 };
 
