@@ -1,6 +1,31 @@
 /*
-* This file creates a validator for individual molecule generted on the fly.
-*/
+ *  This file is part of esynth.
+ *
+ *  esynth is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  esynth is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with esynth.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * eSynth 2.0
+ * Author: Ting Chen
+ *         C. Alvin 8/2022
+ */
+
+/*
+ * Facilitates validating reconstruction of a single molecule.
+ * Input is mol2 format. 
+ */
+ 
 #ifndef _OTFVALIDATOR_GUARD
 #define _OTFVALIDATOR_GUARD 1
 
@@ -9,6 +34,7 @@
 #include<openbabel/mol.h>
 
 #include "Molecule.h" 
+
 //
 // A class to perform validation on the fly, 
 //    compare each generated molecule to the validation molecule 
@@ -18,12 +44,11 @@
 //
 class OTFValidator
 {
-public:
+  public:
 	OTFValidator(std::string& validationInfo, std::string& fileName);
 
 	virtual ~OTFValidator();
 	virtual void validate(const std::string& smi);
-	//virtual void readValidationFile(); read file from OTFValidators - 6/30/2022
 	virtual void createValidationFP();
 	virtual void convertSMItoFP(const std::string& smi);
 	virtual int computeTanimoto();
@@ -31,10 +56,9 @@ public:
 	virtual void writeToFile();
 
 
-private:
-	//const std::string _validationFile;
+  protected:
 	std::string _validationInfo;
-  std::string _outputFileName; 
+    std::string _outputFileName; 
 	std::vector<unsigned int> _validationFP;
 	std::vector<unsigned int> _molFP;
 

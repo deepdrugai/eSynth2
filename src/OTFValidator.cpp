@@ -1,17 +1,44 @@
 /*
-* REQUIRE: -v (validation file name) in command line
-the file has to be .mol2 and containing only 1 molecule
-*
-* Constructor:
-* Initialize an array with size 1000 to store the tanimoto coefficient of
-each input molecule and the validation molecule
-(size 1000 for keeping 3 digit of TC and used as index of the array)
-* 1. Read from a validation file
-* 2. Create the fingerprint for the validation molecule by creating a OBMol
-*
-* Methods:
-* 1.
-*/
+ *  This file is part of esynth.
+ *
+ *  esynth is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  esynth is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with esynth.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * eSynth 2.0
+ * Author: Ting Chen
+ *         C. Alvin 8/2022
+ */
+
+/*
+ * Facilitates validating reconstruction of a single molecule.
+ * Input is mol2 format. 
+ */
+ 
+/*
+ * REQUIRE: -v (validation file name) in command line;
+ *              the file has to be .mol2
+ *
+ * Constructor:
+ *     Initialize an array with size 1000 to store the tanimoto coefficient of
+ *     each input molecule and the validation molecule (size 1000 for keeping
+ *     3-digits of TC as indexing into the array
+ *        1. Read from a validation file
+ *        2. Create the fingerprint for the validation molecule by creating
+ *           OpenBabel OBMol
+ *
+ */
 
 #include<vector> 
 #include<iostream>
@@ -29,9 +56,8 @@ each input molecule and the validation molecule
 
 // Constructor: initialize validation file (.mol2) 
 OTFValidator::OTFValidator(std::string& validInfo, std::string& fName) :
-	//_validationFile{ validFile },
 	_validationInfo{validInfo},
-  _outputFileName{fName},
+    _outputFileName{fName},
 	_validationFP{},
 	_molFP{},
 
@@ -46,7 +72,6 @@ OTFValidator::OTFValidator(std::string& validInfo, std::string& fName) :
 		_TCAnalysis[i] = 0;
 
 	// Get the validation fingerprint 
-	//readValidationFile(); //read file from OTFValidators - 6/30/2022
 	createValidationFP();
 }
 
@@ -64,7 +89,6 @@ void OTFValidator::validate(const std::string& smi)
 	convertSMItoFP(smi);
 	int tcValue = computeTanimoto();
 	analyzeTanimoto(tcValue, smi);
-	//writeToFile(); 
 }
 
 //
@@ -72,6 +96,9 @@ void OTFValidator::validate(const std::string& smi)
 // 
 void OTFValidator::createValidationFP()
 {
+    // Begin open babel usage
+	pthread_mutex_lock(&Molecule::openbabel_lock);
+
 	OpenBabel::OBConversion obConversion;
 	obConversion.SetInFormat("MOL2");
 
@@ -84,16 +111,8 @@ void OTFValidator::createValidationFP()
 	OpenBabel::OBFingerprint* fpType = OpenBabel::OBFingerprint::FindFingerprint("");
 	fpType->GetFingerprint(&validationMol, _validationFP);
 
-	// Print out the title of the validation file (2nd line of the mol2 file)
-	//std::cout << "\nValidating with: " << validationMol.GetTitle() << std::endl;
-
-	// Print out the fingerprint of the validation molecule 
-	// std::cout << "\nFingerprint of the validation molecule: " << std::endl;
-	// for (unsigned int i = 0; i < _validationFP.size(); i++)
-	// {
-	// 	std::cout << _validationFP[i] << " ";
-	// }
-	// cout << endl;
+	// End open babel usage
+	pthread_mutex_unlock(&Molecule::openbabel_lock);
 }
 
 //
@@ -116,31 +135,14 @@ void OTFValidator::convertSMItoFP(const std::string& smi)
 	if (!obConv.ReadString(&mol, smi))
 		std::cerr << "Open Babel is unable to create an OBMol from the smi" << std::endl;
 
-	// End open babel usage
-	pthread_mutex_unlock(&Molecule::openbabel_lock);
-
 	// Create the fingerprint for the generated molecule 
 	OpenBabel::OBFingerprint* fpType = OpenBabel::OBFingerprint::FindFingerprint("");
 
 	// Acquire the fingerprint for the generated molecule for TC comparison 
 	fpType->GetFingerprint(&mol, _molFP);
 
-	// Print out the fingerprint for generated molecule 
-	// std::cout << "\nThe fingerprint for " << mol.GetTitle() << " :" << std::endl;
-	// for (unsigned int i = 0; i < _molFP.size(); i++)
-	// {
-	// 	std::cout << _molFP[i] << " ";
-	// }
-	// std::cout << endl;
-
-	// if (g_debug_output)
-	// {
-	// 	std::cerr << "Unable to get fingerprint of the generated molecule";
-	// 	foreach_units(u_it, molFP)
-	// 	{
-	// 	std:cerr << *u_it << "|";
-	// 	}
-	// }
+	// End open babel usage
+	pthread_mutex_unlock(&Molecule::openbabel_lock);
 }
 
 //
@@ -148,8 +150,14 @@ void OTFValidator::convertSMItoFP(const std::string& smi)
 //
 int OTFValidator::computeTanimoto()
 {
+	// Begin open babel usage
+	pthread_mutex_lock(&Molecule::openbabel_lock);
+
 	// Compute tanimoto coefficient for generated molecule and validation molecule  
 	double tanimoto = OpenBabel::OBFingerprint::Tanimoto(_validationFP, _molFP);
+
+	// End open babel usage
+	pthread_mutex_unlock(&Molecule::openbabel_lock);
 
 	// Take the first three digits of decimal in order to store in an index-based array 
 	int tcValue = trunc(tanimoto * 1000);
@@ -186,7 +194,6 @@ void OTFValidator::analyzeTanimoto(int tcValue, const std::string& smi)
 
 	else if (tcValue == _highestTC)
 	{
-
 		_highestTCmolecules.push_back(smi);
 	}
 
