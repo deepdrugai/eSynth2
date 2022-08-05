@@ -108,8 +108,8 @@ class Constants
     static double MOLWT_UPPERBOUND;
     static double HBD_UPPERBOUND;
     static double HBA1_UPPERBOUND;
-    static double LOGP_UPPERBOUND;
-    
+    static double LOGP_UPPERBOUND;   
+};
 
     const int NOT_FOUND = -1;
 
@@ -126,6 +126,5 @@ class Constants
     // skip the entire synthesis, just output lipinski descriptors for
     //  the input fragments to "initial_fragments_logfile.txt" and exit
     const bool g_calculate_lipinski_descriptors_for_input_fragments_only = false;
-};
 
 #endif
