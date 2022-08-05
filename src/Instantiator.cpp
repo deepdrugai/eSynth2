@@ -244,14 +244,10 @@ std::pair<unsigned int, bool> Instantiator::AddNode(MinimalMolecule* const mol, 
 MoleculeHashHypergraph* Instantiator::SerialInstantiate(std::vector<Linker*>& linkers,
 	std::vector<Brick*>& bricks)
 {
-  std::cout << "Starting synthesis." << std::endl;
-
 	//
 	// Synthesizes level 2 molecules using SMI comparison.
 	//
 	InitializeSynthesis(linkers, bricks);
-
-  std::cout << "Initialized." << std::endl;
 
 	// Indicate size of 1-M lists
 	moleculeLevelCount[1] = baseMolecules.size();
@@ -399,22 +395,16 @@ void Instantiator::InitializeSynthesis(std::vector<Linker*>& linkers,
 	//
 	// Construct the set of 2-Molecules from the bricks and linkers.
 	//
-  std::cout << "Combining begin." << std::endl;
 	for (unsigned m1 = 0; m1 < baseMolecules.size(); m1++)
 	{
 		for (unsigned m2 = m1; m2 < baseMolecules.size(); m2++)
 		{
-      std::cout << m1 << " " << m2 << std::endl;
-
 			std::vector<EdgeAggregator*>* newEdges =
 				baseMolecules[m1]->Compose(*baseMolecules[m2]);
-
-      std::cerr << "Composed " << newEdges->size() << std::endl;
 
 			HandleNewMolecules(level_queues[2], &queue_locks[2], filters[2], newEdges);
 		}
 	}
-  std::cout << "Combining end." << std::endl;
 
 	std::cerr << "Done creating level 2" << std::endl;
 }
@@ -431,8 +421,6 @@ void Instantiator::HandleNewMolecules(std::queue<Molecule*>& worklist,
 	bloom_filter* const levelFilter,
 	std::vector<EdgeAggregator*>* newEdges)
 {
-  std::cout << "Handling " << newEdges->size() << " molecules." << std::endl;
-
 	// Consider adding only if there are, in fact, new molecules
 	if (newEdges->empty())
 	{
@@ -444,12 +432,7 @@ void Instantiator::HandleNewMolecules(std::queue<Molecule*>& worklist,
 	// Since all molecules we have deduced are of the same size (using a level-based
 	// construction), the size of the molecules are the same (equal num fragments)
 	//
-  // std::cout << "Before" << std::endl;
-  // std::cout << (*newEdges->begin())->consequent << std::endl;
-  // std::cout << (*newEdges->begin())->consequent->size() << std::endl;
-
 	unsigned level = (*newEdges->begin())->consequent->size();
-  std::cout << "level " << level << std::endl;
 
 	//
 	// Add all molecules to the hypergraph
@@ -469,9 +452,7 @@ void Instantiator::HandleNewMolecules(std::queue<Molecule*>& worklist,
 		std::string smi = (*e_it)->consequent->ConstructSMI();
 
 		// Validate 
-    std::cout << "Before validating" << std::endl;
 		if (Options::OTF_VALIDATE && on_the_fly_validators) on_the_fly_validators->validate(smi);
-    std::cout << "After validating" << std::endl;
 
 		// Add the consequent node to the graph directly.
 		// std::pair<unsigned int, bool> addedResult = AddNode(minMol, level);

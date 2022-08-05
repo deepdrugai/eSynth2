@@ -293,8 +293,6 @@ int main(int argc, const char** argv)
 
     if (!readInputFiles(inf.getFiles())) return 1;
 
-    std::cout << "Input read." << std::endl;
-
 	//
 	// Bypass synthesis for acquiring information about the input fragments.
 	//    
@@ -309,9 +307,6 @@ int main(int argc, const char** argv)
 	OBWriter* writer = new OBWriter(Options::OBGEN_THREAD_POOL_SIZE);
 	if (Options::SMI_ONLY) writer->InitializeFile(Options::OUTPUT_SMI_FILE);
 	else writer->InitializeFile(Options::OUTPUT_FILE);
-
-	//if (options.validationFile == "") OBWriter::TurnValidationOff();
-	// else, create an openbabel molecule from the validation file 
 
 	// Create On_the_Fly_Validators
 	OTFValidators validators(Options::VALIDATION_FILE);
