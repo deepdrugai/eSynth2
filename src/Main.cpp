@@ -150,23 +150,25 @@ Molecule* createLocalMolecule(OpenBabel::OBMol* mol, MoleculeT mType,
 	return 0;
 }
 
-void addMolecule(char type, Molecule* molecule)
+void addMolecule(Constants::FRAGMENT_TYPE fType, Molecule* molecule)
 {
-	// linker
-	if (type == 'l')
-	{
-		linkers.push_back(static_cast<Linker*>(molecule));
-	}
-	// brick or brick
-	else if (type == 'r' || type == 'b')
-	{
-		bricks.push_back(static_cast<Brick*>(molecule));
-	}
-	else
-	{
-		std::cerr << "Unrecognized file prefix: "
-			<< type << "Expected: l->linker, b->brick" << std::endl;
-	}
+    switch(fType)
+    {
+        case Constants::FRAGMENT_TYPE::BRICK:
+            bricks.push_back(static_cast<Brick*>(molecule));
+            break;
+
+        case Constants::FRAGMENT_TYPE::LINKER:
+            linkers.push_back(static_cast<Linker*>(molecule));
+            break;
+
+        case Constants::FRAGMENT_TYPE::FREE_ATOM:
+            std::cerr << "Internal unexpected FREE_ATOM type." << std::endl;
+            break;
+
+        default:
+        		std::cerr << "Unrecognized input fragment type." << std::endl;
+    }
 }
 
 void readMoleculeFile(const char* fileName, Constants::FRAGMENT_TYPE fType)
@@ -237,7 +239,7 @@ void readMoleculeFile(const char* fileName, Constants::FRAGMENT_TYPE fType)
 		if (g_debug_output) std::cout << "Local: " << *local << "|" << std::endl;
 
 		// Add to the linker or brick list as needed.
-		addMolecule(tolower(fileName[0]), local);
+		addMolecule(fType, local);
 
 		// We don't keep a copy of the OpenBabel molecule anymore.
 		delete mol;
@@ -330,18 +332,6 @@ int main(int argc, const char** argv)
 
 	std::cout << "Excluded (" << exc << "); Included (" << inc << ") \t Excluded: "
               << ((double)(exc) / (exc + inc)) << "\%" << std::endl;
-
-	// External output will always have 0 molecules; uncomment for internal usage and
-	// accurate numbers.
-	// std::cout << OBWriter::NumCompliantMolecules()
-	//          << " are Lipinski compliant molecules" << std::endl;
-
-	//
-	// Validate the molecules specified in the validation file (command-line -v)
-
-	// CHANGE: comment out the original validator 
-	//Validator validator(OBWriter::compliantMols);
-	//validator.Validate(options.validationFile);
 
 	// Deleting the writer will kill the thread pool.
 	delete writer;
