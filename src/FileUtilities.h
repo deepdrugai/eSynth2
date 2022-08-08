@@ -70,16 +70,14 @@ class FileUtilities
         return p.extension().string().substr(1) == extension;
     }
 
+  private:
     /*
      *
      * If the directory exists, the file/path is not valid for writing.
      *    return an incremental value with the same name prefix
      */
-    static std::string getSuffixedDirectory(const std::string& name)
+    static std::string getSuffixedDirectoryHelper(const std::string& name)
     {
-        // If the directory does not exist, do nothing
-        if (!exists(name)) return name;
-
         //
         // Construct a new name with a 'count' suffix
         // file-1, file-2, etc.
@@ -109,6 +107,27 @@ class FileUtilities
 
         // Replace the filename with the suffixed name (maintaining the given path)
         return parentPath.replace_filename(getSuffixedFile(fName.string())).string();
+    }
+
+  public:
+    /*
+     *
+     * If the directory exists, the file/path is not valid for writing.
+     *    return an incremental value with the same name prefix
+     */
+    static std::string getSuffixedDirectory(const std::string& name)
+    {
+        // If the directory does not exist, do nothing
+        if (!exists(name)) return name;
+
+        // Incrementally add the count suffix until a name does not exist
+        std::string newName = getSuffixedDirectoryHelper(name);
+        while (exists(newName))
+        {
+            newName = getSuffixedDirectoryHelper(newName);
+        }
+
+        return newName;
     }
 
     /*
