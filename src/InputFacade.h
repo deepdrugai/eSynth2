@@ -82,6 +82,13 @@ class InputFacade
 
         fragmentFileEmitter("\nThe following fragment files conform to eSynth requirements and will be parsed:");
 
+        // @Magesh: Analysis of the Bricks and Linkers to ensure that the connectivity
+        // information is present.
+		//    At least one 'branch' in each brick
+		//    At least one connection among all atoms in linkers (and free-atoms)
+		//
+		// I recommend implementing another class to pre-process the fragment files.
+		
         //
         // Parse the input fragment files to acquire the sets of bricks and linkers
         //
