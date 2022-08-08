@@ -156,7 +156,8 @@ void OBWriter::IndicateSynthesisStarted()
 //exit(1);
 
     // Remove all files in the directory
-    CleanDirectory(theDir);
+	// v2.0 Cleaning is not needed.
+    // CleanDirectory(theDir);
 
     // Set specific output file information.
     outputDir = theDir;
