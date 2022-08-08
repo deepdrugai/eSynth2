@@ -61,6 +61,7 @@ class Constants
     // Input file arguments
     //
     static const std::string INPUT_SDF_FILE_EXTENSION;
+    static const std::string VALIDATION_FILE_EXTENSION;
 
     static const std::string BRICK_PREFIX;
     static const std::string RIGID_PREFIX;
