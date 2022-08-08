@@ -267,6 +267,14 @@ class CommandLineParser
         }
 
         //
+        // Check the output directory; if the default is used, check suffix
+        //
+        if (Options::OUTPUT_DIRECTORY == Constants::DEFAULT_OUTPUT_DIR)
+        {
+            Options::setOutputDirectory(FileUtilities::getSuffixedDirectory(Constants::DEFAULT_OUTPUT_DIR));
+        }
+
+        //
         // After processing the arguments, collect all the relevant runtime information
         //
         _runtimeArgs[Constants::CMD_ARG_OUTPUT_DIR] = Options::OUTPUT_DIRECTORY;
