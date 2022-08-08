@@ -68,7 +68,7 @@ class InputFacade
         //
         InfileNameAnalyzer nameAnalyzer{ eAnalyzer.getValidFiles() };
 
-        generalFileEmitter("The following files do not conform to eSynth input naming requirements (and will be ignored):",
+        generalFileEmitter("\nThe following files do not conform to eSynth input naming requirements (and will be ignored):",
                     nameAnalyzer.getInvalidFiles());
 
         // Our final list of input fragment files
@@ -80,7 +80,7 @@ class InputFacade
             return false;
         }
 
-        fragmentFileEmitter("The following fragment files conform to eSynth requirements and will be parsed:");
+        fragmentFileEmitter("\nThe following fragment files conform to eSynth requirements and will be parsed:");
 
         //
         // Parse the input fragment files to acquire the sets of bricks and linkers
