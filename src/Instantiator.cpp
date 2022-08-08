@@ -252,6 +252,8 @@ MoleculeHashHypergraph* Instantiator::SerialInstantiate(std::vector<Linker*>& li
 	// Indicate size of 1-M lists
 	moleculeLevelCount[1] = baseMolecules.size();
 
+	std::cout << std::endl << "Stating Synthesis" << std::endl;
+
 	//
 	// Using the level 2 molecules as a base case, process indicating non-completion.
 	//
@@ -380,11 +382,7 @@ void Instantiator::InitializeSynthesis(std::vector<Linker*>& linkers,
 {
 	this->writer->IndicateSynthesisStarted();
 
-	std::cerr << "Synthesis Started Done" << std::endl;
-
 	InitializeBaseMolecules(bricks, linkers, baseMolecules);
-
-	std::cerr << "Base molecules initialized" << std::endl;
 
 	// Add  all the base molecules to the hypergraph
 	foreach_molecules(m_it, baseMolecules)
@@ -581,7 +579,7 @@ void Instantiator::InitializeBaseMolecules(const std::vector<Brick*>& bricks,
 		baseMolecules.push_back(*l_it);
 	}
 
-	std::cerr << "Base molecules contains " << baseMolecules.size() << std::endl;
+	std::cout << std::endl << baseMolecules.size() << " fragments read." << std::endl;
 
 	// The set of base molecules is static in the synthesis process; therefore,
 	// we set the (static) reference base set of molecules in the Molecule class

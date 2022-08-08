@@ -171,7 +171,7 @@ class CommandLineParser
         //
         // Output command-line arguments
         //
-        std::cout << "The run will use the following command-line options; "
+        std::cout << std::endl << "The run will use the following command-line options; "
                   << "for unspecified arguments, default values are shown:" << std::endl;
 
         unsigned maxW = Utilities::maxKeyWidth(args);
@@ -187,7 +187,7 @@ class CommandLineParser
         //
         if (!_files.empty())
         {
-            std::cout << "The following files were specified:" << std::endl;
+            std::cout << std::endl << "The following files were specified:" << std::endl;
 
             for (auto const& file : _files)
             {
@@ -264,6 +264,14 @@ class CommandLineParser
         for (auto it = _userDefined.begin(); it != _userDefined.end(); it++)
         {
             processArgument(it->first, it->second);
+        }
+
+        //
+        // Check the output directory; if the default is used, check suffix
+        //
+        if (Options::OUTPUT_DIRECTORY == Constants::DEFAULT_OUTPUT_DIR)
+        {
+            Options::setOutputDirectory(FileUtilities::getSuffixedDirectory(Constants::DEFAULT_OUTPUT_DIR));
         }
 
         //
