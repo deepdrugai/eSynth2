@@ -171,7 +171,7 @@ class CommandLineParser
         //
         // Output command-line arguments
         //
-        std::cout << "The run will use the following command-line options; "
+        std::cout << std::endl << "The run will use the following command-line options; "
                   << "for unspecified arguments, default values are shown:" << std::endl;
 
         unsigned maxW = Utilities::maxKeyWidth(args);
@@ -187,7 +187,7 @@ class CommandLineParser
         //
         if (!_files.empty())
         {
-            std::cout << "The following files were specified:" << std::endl;
+            std::cout << std::endl << "The following files were specified:" << std::endl;
 
             for (auto const& file : _files)
             {

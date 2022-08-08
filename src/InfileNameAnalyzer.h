@@ -141,6 +141,7 @@ public:
     //     'b' (brick)
     //     'l' (linker)
     //     'r' (rigid) --to be consistent with eSynth v1.0
+	//     'fa' (free atom)
     //
     static Constants::FRAGMENT_TYPE hasUnambiguousValidPrefix(const std::string& name)
     {
@@ -179,6 +180,7 @@ public:
     // (3) If the prefix is not valid the file prefix may contain (as a substring)
     //     brick
     //     linker
+	//     free-atom
     //
     static Constants::FRAGMENT_TYPE hasValidInternalIdentifier(const std::string& prefix)
     {
