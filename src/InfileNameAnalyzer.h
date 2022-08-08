@@ -106,11 +106,11 @@ public:
             return Constants::FRAGMENT_TYPE::ERROR;
         }
 
-        if (!hasValidExtension(p))
+        if (!FileUtilities::hasValidExtension(p, Constants::INPUT_SDF_FILE_EXTENSION))
         {
-            std::cerr << "Extension of file " << p.extension().string() << " is not "
-                      << Constants::INPUT_SDF_FILE_EXTENSION
-                      << " as required." << std::endl;
+            std::cerr << "Extension of file " << p.string() << " is not "
+                << Constants::INPUT_SDF_FILE_EXTENSION
+                << " as required." << std::endl;
 
             return Constants::FRAGMENT_TYPE::ERROR;
         }
@@ -134,19 +134,6 @@ public:
                   << "]" << std::endl;
 
         return Constants::FRAGMENT_TYPE::ERROR;
-    }
-
-    //
-    // (1) Valid Extenion:    sdf
-    //
-    static bool hasValidExtension(fs::path p)
-    {
-        // Check existence before comparing for valid extension
-        if (!p.has_extension()) return false;
-
-        std::string ext = p.extension().string().substr(1);
-
-        return ext == Constants::INPUT_SDF_FILE_EXTENSION;
     }
 
     //

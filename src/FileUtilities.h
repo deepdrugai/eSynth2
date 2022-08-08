@@ -59,6 +59,17 @@ class FileUtilities
         return fs::exists(path);
     }
 
+    //
+    // Check the given file path has a valid extension
+    //
+    static bool hasValidExtension(const fs::path& p, const std::string& extension)
+    {
+        // Check existence before comparing for valid extension
+        if (!p.has_extension()) return false;
+
+        return p.extension().string().substr(1) == extension;
+    }
+
     /*
      *
      * If the directory exists, the file/path is not valid for writing.

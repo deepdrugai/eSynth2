@@ -324,12 +324,20 @@ class CommandLineParser
             {
                 std::cerr << "Specified validation file " << value
                           << " does not exist. Validation will not be performed." << std::endl;
+                return;
             }
-            else
+
+            fs::path valPath = value;
+            if (!FileUtilities::hasValidExtension(valPath, Constants::VALIDATION_FILE_EXTENSION))
             {
-                Options::setValidationFile(value);
-                _runtimeArgs[Constants::CMD_ARG_VALIDATION_FILE] = value;
+                std::cerr << "Extension of validation file " << valPath.string()
+                          << " must be " << Constants::VALIDATION_FILE_EXTENSION
+                          << ". Validation will not be performed." << std::endl;
+                return;
             }
+
+            Options::setValidationFile(value);
+            _runtimeArgs[Constants::CMD_ARG_VALIDATION_FILE] = value;
         }
 
         // space required between:  -tc <int>
