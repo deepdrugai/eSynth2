@@ -49,6 +49,13 @@ void Brick::parseAppendix(std::string& suffix, int numAtoms)
     std::stringstream suffStream(suffix);
 
     //
+    // @Magesh: Linker and Brick seek extensions in SDF format triggered by > <
+    // Make sure we check for eMolFrag v1.0 format(s)
+	// And check for v2.0 format(s)
+	//
+
+
+    //
     // Read until we get "> <"
     //
     std::string line = "";
@@ -88,6 +95,11 @@ void Brick::parseAppendix(std::string& suffix, int numAtoms)
 
     // Parallels the atom arrays
     std::vector<std::string>* conns = new std::vector<std::string>[atomTypes.size()];    
+
+    //
+    // @Magesh: Check that the atomTypes list is non-empty
+	//
+
 
     int atomId = -1;
     while (!isspace(suffStream.peek()))    

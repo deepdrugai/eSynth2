@@ -79,6 +79,7 @@ const std::map<std::string, std::string> Constants::USAGE_MAP = {
 // Input file arguments
 //
 const std::string Constants::INPUT_SDF_FILE_EXTENSION = "sdf";
+const std::string Constants::VALIDATION_FILE_EXTENSION = "mol2";
 
 const std::string Constants::BRICK_PREFIX = "b";
 const std::string Constants::RIGID_PREFIX = "r";

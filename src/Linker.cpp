@@ -55,6 +55,12 @@ void Linker::parseAppendix(std::string& suffix, int numAtoms)
     std::stringstream suffStream(suffix);
 
     //
+    // @Magesh: Linker and Brick seek extensions in SDF format triggered by > <
+    // Make sure we check for eMolFrag v1.0 format(s)
+	// And check for v2.0 format(s)
+	//
+
+    //
     // Read until we get "> <"
     //
     std::string line = ""; 
@@ -68,6 +74,10 @@ void Linker::parseAppendix(std::string& suffix, int numAtoms)
     //
     int maxConnections = -1;
     std::string atomType;
+
+    //
+    // @Magesh: Check that the sum of all maxConnctions > 0
+	//
 
     for(int x = 0; x < numAtoms; x++)
     {

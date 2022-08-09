@@ -106,11 +106,11 @@ public:
             return Constants::FRAGMENT_TYPE::ERROR;
         }
 
-        if (!hasValidExtension(p))
+        if (!FileUtilities::hasValidExtension(p, Constants::INPUT_SDF_FILE_EXTENSION))
         {
-            std::cerr << "Extension of file " << p.extension().string() << " is not "
-                      << Constants::INPUT_SDF_FILE_EXTENSION
-                      << " as required." << std::endl;
+            std::cerr << "Extension of file " << p.string() << " is not "
+                << Constants::INPUT_SDF_FILE_EXTENSION
+                << " as required." << std::endl;
 
             return Constants::FRAGMENT_TYPE::ERROR;
         }
@@ -137,23 +137,11 @@ public:
     }
 
     //
-    // (1) Valid Extenion:    sdf
-    //
-    static bool hasValidExtension(fs::path p)
-    {
-        // Check existence before comparing for valid extension
-        if (!p.has_extension()) return false;
-
-        std::string ext = p.extension().string().substr(1);
-
-        return ext == Constants::INPUT_SDF_FILE_EXTENSION;
-    }
-
-    //
     // (2) File name begins with :
     //     'b' (brick)
     //     'l' (linker)
     //     'r' (rigid) --to be consistent with eSynth v1.0
+	//     'fa' (free atom)
     //
     static Constants::FRAGMENT_TYPE hasUnambiguousValidPrefix(const std::string& name)
     {
@@ -192,6 +180,7 @@ public:
     // (3) If the prefix is not valid the file prefix may contain (as a substring)
     //     brick
     //     linker
+	//     free-atom
     //
     static Constants::FRAGMENT_TYPE hasValidInternalIdentifier(const std::string& prefix)
     {

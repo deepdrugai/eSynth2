@@ -126,20 +126,21 @@ void OBWriter::IndicateSynthesisStarted()
     //
     std::string theDir = Options::OUTPUT_DIRECTORY;
 
-    std::cout << "Will output to directory: " << theDir << std::endl;
+    // std::cout << "Will output to directory: " << theDir << std::endl;
 
     bool overwrite = true;
     if (DoesDirectoryExist(theDir))
     {
-        std::cout << "The output directory " << theDir << " exists." << std::endl;
-        std::cout << "Do you wish to overwrite? (Y / N)" << std::endl; 
+        std::cout << "The output directory " << theDir << " exists."
+                  << " This should not happen." << std::endl;
+        // std::cout << "Do you wish to overwrite? (Y / N)" << std::endl; 
 
-        // Read in the entire input string and observe only the first character
-        std::string decision;
-        std::cin >> decision;
+        // // Read in the entire input string and observe only the first character
+        // std::string decision;
+        // std::cin >> decision;
 
-        if (decision[0] == 'y' || decision[0] == 'Y') overwrite = true;
-        else overwrite = false;
+        // if (decision[0] == 'y' || decision[0] == 'Y') overwrite = true;
+        // else overwrite = false;
     }
     else
     {
@@ -155,7 +156,8 @@ void OBWriter::IndicateSynthesisStarted()
 //exit(1);
 
     // Remove all files in the directory
-    CleanDirectory(theDir);
+	// v2.0 Cleaning is not needed.
+    // CleanDirectory(theDir);
 
     // Set specific output file information.
     outputDir = theDir;

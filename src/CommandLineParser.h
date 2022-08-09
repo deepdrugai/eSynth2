@@ -171,7 +171,7 @@ class CommandLineParser
         //
         // Output command-line arguments
         //
-        std::cout << "The run will use the following command-line options; "
+        std::cout << std::endl << "The run will use the following command-line options; "
                   << "for unspecified arguments, default values are shown:" << std::endl;
 
         unsigned maxW = Utilities::maxKeyWidth(args);
@@ -187,7 +187,7 @@ class CommandLineParser
         //
         if (!_files.empty())
         {
-            std::cout << "The following files were specified:" << std::endl;
+            std::cout << std::endl << "The following files were specified:" << std::endl;
 
             for (auto const& file : _files)
             {
@@ -267,6 +267,14 @@ class CommandLineParser
         }
 
         //
+        // Check the output directory; if the default is used, check suffix
+        //
+        if (Options::OUTPUT_DIRECTORY == Constants::DEFAULT_OUTPUT_DIR)
+        {
+            Options::setOutputDirectory(FileUtilities::getSuffixedDirectory(Constants::DEFAULT_OUTPUT_DIR));
+        }
+
+        //
         // After processing the arguments, collect all the relevant runtime information
         //
         _runtimeArgs[Constants::CMD_ARG_OUTPUT_DIR] = Options::OUTPUT_DIRECTORY;
@@ -324,12 +332,20 @@ class CommandLineParser
             {
                 std::cerr << "Specified validation file " << value
                           << " does not exist. Validation will not be performed." << std::endl;
+                return;
             }
-            else
+
+            fs::path valPath = value;
+            if (!FileUtilities::hasValidExtension(valPath, Constants::VALIDATION_FILE_EXTENSION))
             {
-                Options::setValidationFile(value);
-                _runtimeArgs[Constants::CMD_ARG_VALIDATION_FILE] = value;
+                std::cerr << "Extension of validation file " << valPath.string()
+                          << " must be " << Constants::VALIDATION_FILE_EXTENSION
+                          << ". Validation will not be performed." << std::endl;
+                return;
             }
+
+            Options::setValidationFile(value);
+            _runtimeArgs[Constants::CMD_ARG_VALIDATION_FILE] = value;
         }
 
         // space required between:  -tc <int>
