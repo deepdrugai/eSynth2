@@ -32,17 +32,18 @@
 #include "Constants.h"
 
 /*
- * Singleton Options object 
+ * Singleton Options object
  */
 class CommandLineParser
 {
-  protected:
+protected:
     int _argc;
-    const char** _argv;
+    const char **_argv;
 
-  public:
-    CommandLineParser(int argc, const char** argv) : _argc{ argc }, _argv{ argv }
-    {}
+public:
+    CommandLineParser(int argc, const char **argv) : _argc{argc}, _argv{argv}
+    {
+    }
 
     bool parse()
     {
@@ -53,7 +54,8 @@ class CommandLineParser
 
         // Process the arguments to verify reasonable values
         // if usage or version is requested, we leave without any further information shared
-        if (!processArguments()) return false;
+        if (!processArguments())
+            return false;
 
         echoArguments(_runtimeArgs);
 
@@ -70,7 +72,7 @@ class CommandLineParser
     //
     std::vector<std::string> getFiles() { return _files; }
 
-  protected:
+protected:
     std::vector<std::string> _files;
 
     // Parsed arguments
@@ -79,24 +81,24 @@ class CommandLineParser
     // Verified arguments
     mutable std::map<std::string, std::string> _runtimeArgs;
 
-  private:
-
+private:
     //
     //
     // Functionality to take-in the command-line arguments into a dictionary
     //
     // Populates _userDefined
     //
-    void doParse(int argc, const char** argv)
+    void doParse(int argc, const char **argv)
     {
         // Skip over the program name
         for (int i = 1; i < argc; i++)
         {
             // If the input does not have prefix '-', it is
-            // considered to be a file 
+            // considered to be a file
             if (!isOption(i, argv))
             {
-                if (!Utilities::contains(_files, std::string(argv[i]))) _files.push_back(argv[i]);
+                if (!Utilities::contains(_files, std::string(argv[i])))
+                    _files.push_back(argv[i]);
                 else
                     std::cerr << "File " << argv[i]
                               << " is redundant and will be ignored." << std::endl;
@@ -105,20 +107,22 @@ class CommandLineParser
     }
 
     /*
-     * if the current argument is an option, process it 
-     * 
+     * if the current argument is an option, process it
+     *
      * @input: index in the argv array
      * @input: argv command-line array of C-style strings
-     * 
+     *
      * @output: true if the current index indicates an option from the user
      */
-    bool isOption(int& index, const char** argv)
+    bool isOption(int &index, const char **argv)
     {
-        if (argv[index][0] != '-') return false;
+        if (argv[index][0] != '-')
+            return false;
 
         std::string arg = std::string(argv[index]).substr(1);
 
-        if (handleSingletonOption(arg)) return true;
+        if (handleSingletonOption(arg))
+            return true;
 
         if (!handlePairedOption(arg, argv[++index]))
         {
@@ -134,11 +138,12 @@ class CommandLineParser
      *     Their specification by the user turns the option 'on'.
      *
      *  Singleton options include:
-     *   
+     *
      */
     bool handleSingletonOption(std::string arg)
     {
-        if (!Utilities::contains(Constants::CMD_ARGS_SINGLETON, arg)) return false;
+        if (!Utilities::contains(Constants::CMD_ARGS_SINGLETON, arg))
+            return false;
 
         // Add to our map as a singleton option
         _userDefined[arg] = "";
@@ -153,9 +158,10 @@ class CommandLineParser
      *  Singleton options include:
      *
      */
-    bool handlePairedOption(const std::string& arg, const std::string& arg_val)
+    bool handlePairedOption(const std::string &arg, const std::string &arg_val)
     {
-        if (!Utilities::contains(Constants::CMD_ARGS_PAIRED, arg)) return false;
+        if (!Utilities::contains(Constants::CMD_ARGS_PAIRED, arg))
+            return false;
 
         // Add to our map as a singleton option
         _userDefined[arg] = arg_val;
@@ -166,12 +172,13 @@ class CommandLineParser
     /*
      * After parsing, report the command-line options that will be used
      */
-    void echoArguments(const std::map<std::string, std::string>& args)
+    void echoArguments(const std::map<std::string, std::string> &args)
     {
         //
         // Output command-line arguments
         //
-        std::cout << std::endl << "The run will use the following command-line options; "
+        std::cout << std::endl
+                  << "The run will use the following command-line options; "
                   << "for unspecified arguments, default values are shown:" << std::endl;
 
         unsigned maxW = Utilities::maxKeyWidth(args);
@@ -187,9 +194,10 @@ class CommandLineParser
         //
         if (!_files.empty())
         {
-            std::cout << std::endl << "The following files were specified:" << std::endl;
+            std::cout << std::endl
+                      << "The following files were specified:" << std::endl;
 
-            for (auto const& file : _files)
+            for (auto const &file : _files)
             {
                 std::cout << '\t' << file << std::endl;
             }
@@ -213,11 +221,14 @@ class CommandLineParser
         bool vers = _userDefined.find(Constants::CMD_ARG_VERSION) != _userDefined.end();
 
         // Neither requested
-        if (!use && !vers) return false;
+        if (!use && !vers)
+            return false;
 
         // Handle requests
-        if (vers) version();
-        if (use) usage();
+        if (vers)
+            version();
+        if (use)
+            usage();
 
         return true;
     }
@@ -229,7 +240,8 @@ class CommandLineParser
     bool processArguments() const
     {
         // Handle version information or usage information
-        if (usageVersionRequested()) return false;
+        if (usageVersionRequested())
+            return false;
 
         //
         // If the level bound has been specified, process it.
@@ -285,8 +297,8 @@ class CommandLineParser
         return true;
     }
 
-    void processArgument(const std::string& arg,
-                         const std::string& value) const
+    void processArgument(const std::string &arg,
+                         const std::string &value) const
     {
         //
         // Singleton arguments
@@ -295,6 +307,11 @@ class CommandLineParser
         {
             Options::setSMILESOutputOnly();
             _runtimeArgs[Constants::CMD_ARG_SMI_ONLY] = "";
+        }
+        else if (arg == Constants::CMD_ARG_FA_FILES)
+        {
+            Options::setFreeAtomFileFlag();
+            _runtimeArgs[Constants::CMD_ARG_FA_FILES] = "";
         }
         else if (arg == Constants::CMD_ARG_SERIAL)
         {
@@ -356,14 +373,14 @@ class CommandLineParser
             if (coeff <= 0)
             {
                 std::cerr << "Default tanimoto coeffecient must be in the range (0, 1]"
-                    << "input Tanimoto is invalid: " << value << std::endl;
+                          << "input Tanimoto is invalid: " << value << std::endl;
             }
 
             // In the case that the input value fails to be read, 0.0 is returned
             if (coeff > 1)
             {
                 std::cerr << "Default tanimoto coeffecient must be in the range (0, 1]"
-                    << "input is " << coeff << std::endl;
+                          << "input is " << coeff << std::endl;
             }
 
             // the set function will default to 0.95 for erroneous values
@@ -382,15 +399,15 @@ class CommandLineParser
             if (level <= 0)
             {
                 std::cerr << "Default level bound must be zero; not "
-                    << value << std::endl;
+                          << value << std::endl;
             }
 
             // In the case that the input value fails to be read, 0.0 is returned
             if (level > Constants::MAX_SYNTH_LEVEL_BOUND)
             {
                 std::cerr << "Level bound must be less than "
-                    << Constants::MAX_SYNTH_LEVEL_BOUND
-                    << " not " << level << std::endl;
+                          << Constants::MAX_SYNTH_LEVEL_BOUND
+                          << " not " << level << std::endl;
             }
 
             // the set function will default to 20 for erroneous values
@@ -404,15 +421,15 @@ class CommandLineParser
     //
     //
 
-  public:
+public:
     /*
      * Usage information; output of the possible options
      */
     static void usage()
     {
         std::cout << Constants::ESYNTH_EXECUTABLE
-            << " may be executed with the following options:"
-            << std::endl;
+                  << " may be executed with the following options:"
+                  << std::endl;
 
         unsigned maxW = Utilities::maxKeyWidth(Constants::USAGE_MAP);
 

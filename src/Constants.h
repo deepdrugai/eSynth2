@@ -30,7 +30,7 @@
 
 class Constants
 {
-  public:
+public:
     static const std::string ESYNTH_VERSION;
     static const std::string ESYNTH_EXECUTABLE;
 
@@ -39,6 +39,7 @@ class Constants
     //
     // Singleton command-line arguments
     static const std::string CMD_ARG_SMI_ONLY;
+    static const std::string CMD_ARG_FA_FILES;
     static const std::string CMD_ARG_USAGE;
     static const std::string CMD_ARG_VERSION;
     static const std::string CMD_ARG_SERIAL;
@@ -86,7 +87,6 @@ class Constants
         ERROR
     } FRAGMENT_TYPE;
 
-
     //
     // User-defined options
     //
@@ -100,7 +100,6 @@ class Constants
     static unsigned MAX_SYNTH_LEVEL_BOUND;
     static unsigned DEFAULT_PROBABILITY_PRUNE_LEVEL_START;
 
-
     //
     // v1.0 Constants
     //
@@ -109,23 +108,20 @@ class Constants
     static double MOLWT_UPPERBOUND;
     static double HBD_UPPERBOUND;
     static double HBA1_UPPERBOUND;
-    static double LOGP_UPPERBOUND;   
+    static double LOGP_UPPERBOUND;
 };
 
-    const int NOT_FOUND = -1;
+const int NOT_FOUND = -1;
 
+// Debugging constants
+const bool DEBUG = true;
 
-    // Debugging constants
-    const bool DEBUG = true;
+const bool g_debug_output = false;
 
-    const bool g_debug_output = false;
+const int THREAD_POOL_SIZE = 10;
 
-
-    const int THREAD_POOL_SIZE = 10;
-
-
-    // skip the entire synthesis, just output lipinski descriptors for
-    //  the input fragments to "initial_fragments_logfile.txt" and exit
-    const bool g_calculate_lipinski_descriptors_for_input_fragments_only = false;
+// skip the entire synthesis, just output lipinski descriptors for
+//  the input fragments to "initial_fragments_logfile.txt" and exit
+const bool g_calculate_lipinski_descriptors_for_input_fragments_only = false;
 
 #endif

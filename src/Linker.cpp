@@ -21,52 +21,56 @@
 #include <map>
 #include <sstream>
 
-
 #include <openbabel/mol.h>
 #include <openbabel/bond.h>
-
 
 #include "Linker.h"
 #include "LinkerConnectableAtom.h"
 
-
-Linker::Linker(OpenBabel::OBMol* obmol, const std::string& name) : Molecule(obmol, name)
+Linker::Linker(OpenBabel::OBMol *obmol, const std::string &name) : Molecule(obmol, name)
 {
     //
     // Acquire the comment data, make a copy, parse that comment.
     //
-    OpenBabel::OBCommentData* comment = static_cast<OpenBabel::OBCommentData*>(obmol->GetData("Comment"));
+    OpenBabel::OBCommentData *comment = static_cast<OpenBabel::OBCommentData *>(obmol->GetData("Comment"));
 
     std::string commentStr = comment->GetData();
 
     parseAppendix(commentStr, obmol->NumAtoms());
 
-    // if (Options::OPENBABEL) OBWriter::ScrubAndConvertToSMIInternal(obmol, this->smi); 
+    // if (Options::OPENBABEL) OBWriter::ScrubAndConvertToSMIInternal(obmol, this->smi);
 }
 
 //
 // Parse suffix to add max connection for each atom.
 //
-void Linker::parseAppendix(std::string& suffix, int numAtoms)
+void Linker::parseAppendix(std::string &suffix, int numAtoms)
 {
     // std::cerr << "Linker::parseAppendix: " << suffix << "|" << std::endl;
 
     // Use a string stream instead of manipulatiing the string
     std::stringstream suffStream(suffix);
+    std::map<int, std::string> connectMap;
 
     //
     // @Magesh: Linker and Brick seek extensions in SDF format triggered by > <
     // Make sure we check for eMolFrag v1.0 format(s)
-	// And check for v2.0 format(s)
-	//
+    // And check for v2.0 format(s)
+    //
 
     //
     // Read until we get "> <"
     //
-    std::string line = ""; 
-    while(line.find("> <") == std::string::npos)
+    std::string line = "";
+
+    while (line.find("> <MAX-") == std::string::npos && line.find(">  <MAX-") == std::string::npos)
     {
         getline(suffStream, line);
+        if (line == "$$$$")
+        {
+            valid = false;
+            return;
+        }
     }
 
     //
@@ -74,15 +78,28 @@ void Linker::parseAppendix(std::string& suffix, int numAtoms)
     //
     int maxConnections = -1;
     std::string atomType;
-
+    int count = 0;
     //
     // @Magesh: Check that the sum of all maxConnctions > 0
-	//
-
-    for(int x = 0; x < numAtoms; x++)
+    //
+    for (int x = 0; x < numAtoms; x++)
     {
         suffStream >> maxConnections;
         suffStream >> atomType;
+        count += maxConnections;
+        if (maxConnections < 0 || atomType.empty())
+        {
+            valid = false;
+            return;
+        }
+        if (x == numAtoms - 1)
+        {
+            if (count <= 0)
+            {
+                valid = false;
+                return;
+            }
+        }
 
         // A linker can link to any atom.
         this->atoms.push_back(new LinkerConnectableAtom(maxConnections, atomType, this));
