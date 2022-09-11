@@ -21,7 +21,6 @@
 #include <map>
 #include <sstream>
 #include <cctype>
-#include <regex>
 
 #include "Brick.h"
 #include "Utilities.h"
