@@ -27,23 +27,23 @@
 
 class Linker : public Molecule
 {
-  public:
-    Linker(OpenBabel::OBMol*, const std::string& name);
-    Linker() {}
+public:
+  Linker(OpenBabel::OBMol *, const std::string &name);
+  Linker() {}
 
-    ~Linker() {}
+  ~Linker() {}
 
-    virtual bool IsLinker() const { return true; }
-    virtual bool IsComplex() const { return false; }
-    virtual bool IsRigid() const { return false; }
+  virtual bool IsLinker() const { return true; }
+  virtual bool IsComplex() const { return false; }
+  virtual bool IsRigid() const { return false; }
 
-    bool operator==(const Linker& that) const
-    {
-        return this->getUniqueIndexID() == that.getUniqueIndexID();
-    }
+  bool operator==(const Linker &that) const
+  {
+    return this->getUniqueIndexID() == that.getUniqueIndexID();
+  }
 
-  protected:
-    virtual void parseAppendix(std::string& suffix, int numAtoms = -1);
+protected:
+  virtual void parseAppendix(std::string &suffix, int numAtoms = -1);
 };
 
 #endif

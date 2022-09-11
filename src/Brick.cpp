@@ -22,46 +22,43 @@
 #include <sstream>
 #include <cctype>
 
-
 #include "Brick.h"
 #include "Utilities.h"
 #include "BrickConnectableAtom.h"
 
-
-Brick::Brick(OpenBabel::OBMol* obmol, const std::string& name) : Molecule(obmol, name)
+Brick::Brick(OpenBabel::OBMol *obmol, const std::string &name) : Molecule(obmol, name)
 {
     //
     // Acquire the comment data, make a copy, parse that comment.
     //
-    OpenBabel::OBCommentData* comment =
-                           static_cast<OpenBabel::OBCommentData*>(obmol->GetData("Comment"));
+    OpenBabel::OBCommentData *comment =
+        static_cast<OpenBabel::OBCommentData *>(obmol->GetData("Comment"));
 
     std::string commentStr = comment->GetData();
 
     parseAppendix(commentStr, obmol->NumAtoms());
 
-    // if (Options::OPENBABEL) OBWriter::ScrubAndConvertToSMIInternal(obmol, this->smi); 
+    // if (Options::OPENBABEL) OBWriter::ScrubAndConvertToSMIInternal(obmol, this->smi);
 }
 
-void Brick::parseAppendix(std::string& suffix, int numAtoms)
+void Brick::parseAppendix(std::string &suffix, int numAtoms)
 {
     // Use a string stream instead of manipulatiing the string
     std::stringstream suffStream(suffix);
-
-    //
-    // @Magesh: Linker and Brick seek extensions in SDF format triggered by > <
-    // Make sure we check for eMolFrag v1.0 format(s)
-	// And check for v2.0 format(s)
-	//
-
+    std::string line = "";
 
     //
     // Read until we get "> <"
     //
-    std::string line = "";
-    while(line.find("> <") == std::string::npos)
+
+    while (line.find("> <ATOMTYPES") == std::string::npos && line.find(">  <ATOMTYPES") == std::string::npos)
     {
         getline(suffStream, line);
+        if (line == "$$$$")
+        {
+            valid = false;
+            return;
+        }
     }
 
     //
@@ -69,12 +66,9 @@ void Brick::parseAppendix(std::string& suffix, int numAtoms)
     //
     std::string atomType;
     std::vector<std::string> atomTypes;
-    for(int x = 0; x < numAtoms; x++)
+    for (int x = 0; x < numAtoms; x++)
     {
         suffStream >> atomType;
-
-// std::cerr << atomType << std::endl;
-
         atomTypes.push_back(atomType);
     }
 
@@ -84,61 +78,74 @@ void Brick::parseAppendix(std::string& suffix, int numAtoms)
     //
     // Read until we get "> <"
     //
-    while(line.find("> <") == std::string::npos)
+    while (line.find("> <BRANCH") == std::string::npos && line.find(">  <ATOM_NUMBER") == std::string::npos && line.find("> <ATOM_NUMBER") == std::string::npos)
     {
         getline(suffStream, line);
+        if (line == "$$$$")
+        {
+            valid = false;
+            return;
+        }
     }
 
     //
     // Read Branches
     //
 
-    // Parallels the atom arrays
-    std::vector<std::string>* conns = new std::vector<std::string>[atomTypes.size()];    
-
-    //
-    // @Magesh: Check that the atomTypes list is non-empty
-	//
-
-
-    int atomId = -1;
-    while (!isspace(suffStream.peek()))    
+    if (!atomTypes.empty())
     {
-        suffStream >> atomId;
+        // Parallels the atom arrays
+        std::vector<std::string> *conns = new std::vector<std::string>[atomTypes.size()];
 
-        while (suffStream.peek() != '\n' && suffStream.peek() != '\r')
+        //
+        // @Magesh: Check that the atomTypes list is non-empty
+        //
+
+        int atomId = -1;
+        while (!isspace(suffStream.peek()))
         {
-            suffStream >> atomType;
+            suffStream >> atomId;
 
-            conns[atomId - 1].push_back(atomType);
+            while (suffStream.peek() != '\n' && suffStream.peek() != '\r')
+            {
+                suffStream >> atomType;
 
-            eatWhiteToNewLineOrChar(suffStream);
+                conns[atomId - 1].push_back(atomType);
+
+                eatWhiteToNewLineOrChar(suffStream);
+            }
+
+            // Get the newline
+            suffStream.get();
         }
 
-        // Get the newline
-        suffStream.get();
-    }
-
-    //
-    // Read through the $$$$
-    //
-    while(line.find("$$$$") == std::string::npos)
-    {
-        getline(suffStream, line);
-    }
-
-    //
-    // Actually create the atoms for this molecule.
-    //
-    for (int a = 0; a < numAtoms; a++)
-    {
-        if (conns[a].empty()) this->atoms.push_back(new Atom(atomTypes[a]));
-        else
+        //
+        // Read through the $$$$
+        //
+        while (line.find("$$$$") == std::string::npos)
         {
-            this->atoms.push_back(new BrickConnectableAtom(atomTypes[a], this, conns[a]));
-            conns[a].clear();
+            getline(suffStream, line);
         }
-    }
 
-    delete[] conns;
+        //
+        // Actually create the atoms for this molecule.
+        //
+        for (int a = 0; a < numAtoms; a++)
+        {
+            if (conns[a].empty())
+                this->atoms.push_back(new Atom(atomTypes[a]));
+            else
+            {
+                this->atoms.push_back(new BrickConnectableAtom(atomTypes[a], this, conns[a]));
+                conns[a].clear();
+            }
+        }
+
+        delete[] conns;
+    }
+    else
+    {
+        valid = false;
+        return;
+    }
 }

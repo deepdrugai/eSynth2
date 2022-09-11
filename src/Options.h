@@ -30,9 +30,9 @@
 #include "Utilities.h"
 #include "Constants.h"
 
- //
- // A aggregation class for options specified in the command-line
- //
+//
+// A aggregation class for options specified in the command-line
+//
 struct Options
 {
     //
@@ -47,19 +47,19 @@ struct Options
 
     static bool OPENBABEL;
     static bool USE_LIPINSKI;
-    //static unsigned SMI_LEVEL_BOUND;
+    // static unsigned SMI_LEVEL_BOUND;
     static unsigned int OBGEN_THREAD_POOL_SIZE;
 
     static double SA_THRESHOLD;
-    //static std::string PYTHON_MODULE_NAME;
-    //static std::string PYTHON_FUNCTION_NAME;
-
+    // static std::string PYTHON_MODULE_NAME;
+    // static std::string PYTHON_FUNCTION_NAME;
 
     //
     // v2.0 Constants
     //
     static void init(); // constructor-like funtion for default initializations
     static bool SMI_ONLY;
+    static bool FA_FILES;
     static bool SERIAL;
 
     static std::string OUTPUT_FILE;
@@ -75,16 +75,18 @@ struct Options
     static unsigned PROBABILITY_PRUNE_LEVEL_START;
     static unsigned USER_DEFINED_LEVEL_BOUND;
 
-
     // SMILES format for synthesized molecules
     static void setSMILESOutputOnly() { SMI_ONLY = true; }
+
+    // FA FILE for Free Atom Files
+    static void setFreeAtomFileFlag() { FA_FILES = true; }
 
     // Non-threaded execution
     static void setSerialExecution() { SERIAL = true; }
 
-    static void setOutputFile(const std::string& name) { OUTPUT_FILE = name; }
-    static void setOutputDirectory(const std::string& name) { OUTPUT_DIRECTORY = name; }
-    static void setValidationFile(const std::string& name)
+    static void setOutputFile(const std::string &name) { OUTPUT_FILE = name; }
+    static void setOutputDirectory(const std::string &name) { OUTPUT_DIRECTORY = name; }
+    static void setValidationFile(const std::string &name)
     {
         OTF_VALIDATE = true;
         VALIDATION_FILE = name;
@@ -95,7 +97,8 @@ struct Options
      */
     static void setTanimotoCoeff(double value)
     {
-        if (value < 0 || value > 1) return;
+        if (value < 0 || value > 1)
+            return;
 
         TANIMOTO = value;
     }
@@ -105,7 +108,8 @@ struct Options
      */
     static void setLevelBound(unsigned level)
     {
-        if (level > Constants::MAX_SYNTH_LEVEL_BOUND) return;
+        if (level > Constants::MAX_SYNTH_LEVEL_BOUND)
+            return;
 
         USER_DEFINED_LEVEL_BOUND = level;
     }
@@ -115,7 +119,8 @@ struct Options
      */
     static void setProbLevel(unsigned level)
     {
-        if (level > Constants::MAX_SYNTH_LEVEL_BOUND) return;
+        if (level > Constants::MAX_SYNTH_LEVEL_BOUND)
+            return;
 
         PROBABILITY_PRUNE_LEVEL_START = level;
     }
