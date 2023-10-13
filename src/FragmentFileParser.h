@@ -237,7 +237,8 @@ protected:
             break;
 
         case Constants::FRAGMENT_TYPE::FREE_ATOM:
-            std::cerr << "Internal unexpected FREE_ATOM type." << std::endl;
+            _linkers.push_back(static_cast<Linker *>(molecule));
+            // std::cerr << "Internal unexpected FREE_ATOM type." << std::endl;
             break;
 
         default:
