@@ -163,7 +163,8 @@ void addMolecule(Constants::FRAGMENT_TYPE fType, Molecule* molecule)
             break;
 
         case Constants::FRAGMENT_TYPE::FREE_ATOM:
-            std::cerr << "Internal unexpected FREE_ATOM type." << std::endl;
+			linkers.push_back(static_cast<Linker*>(molecule));
+            // std::cerr << "Internal unexpected FREE_ATOM type." << std::endl;
             break;
 
         default:
