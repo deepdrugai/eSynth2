@@ -32,6 +32,7 @@
 #include "Molecule.h"
 #include "Bond.h"
 #include "Atom.h"
+#include "BrickConnectableAtom.h"
 #include "obgen.h"
 #include "Thread_Pool.h"
 #include "Brick.h"
