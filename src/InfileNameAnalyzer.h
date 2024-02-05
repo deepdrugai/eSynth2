@@ -15,10 +15,10 @@
  *  along with esynth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- /*
-  * eSynth 2.0
-  * Author: C. Alvin 7/27/2022
-  */
+/*
+ * eSynth 2.0
+ * Author: C. Alvin 7/27/2022
+ */
 
 #ifndef _INFILE_NAME_ANALYZER_GUARD
 #define _INFILE_NAME_ANALYZER_GUARD 1
@@ -27,18 +27,18 @@
 #include <vector>
 #include <iostream>
 
-  // TODO: Guards around selecting C++ standard
+// TODO: Guards around selecting C++ standard
 
-  // #ifdef __cplusplus
+// #ifdef __cplusplus
 
-  // Requires C++-14
+// Requires C++-14
 #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 
 // Requires C++-17
 //#include <filesystem>
-//namespace fs = std::filesystem;
+// namespace fs = std::filesystem;
 
 #include "InfileExistenceAnalyzer.h"
 
@@ -50,39 +50,53 @@ namespace fs = std::experimental::filesystem;
 //
 class InfileNameAnalyzer
 {
-  protected:
+protected:
     std::map<std::string, Constants::FRAGMENT_TYPE> _valid;
     std::vector<std::string> _invalid;
+    std::vector<std::string> _faFiles;
 
-  public:
-    InfileNameAnalyzer(const std::vector<std::string>& names) : _valid{}, _invalid{}
+public:
+    InfileNameAnalyzer(const std::vector<std::string> &names) : _valid{}, _invalid{}, _faFiles{}
     {
         analyze(names);
     }
 
     std::map<std::string, Constants::FRAGMENT_TYPE> getValidFiles() const { return _valid; }
     std::vector<std::string> getInvalidFiles() const { return _invalid; }
+    std::vector<std::string> getFreeAtomFiles() const { return _faFiles; }
 
-  protected:
-
+protected:
     //
     // Split the files into valid and invalid
     //
-    void analyze(const std::vector<std::string>& names)
+    void analyze(const std::vector<std::string> &names)
     {
         for (std::vector<std::string>::const_iterator it = names.begin(); it != names.end(); it++)
         {
             fs::path p = *it;
 
             Constants::FRAGMENT_TYPE fType = isValidFileName(p);
-            
-            if (fType != Constants::FRAGMENT_TYPE::ERROR) _valid[*it] = fType;
-            else _invalid.push_back(*it);
+
+            if (Options::FA_FILES)
+            {
+                if (fType == Constants::FRAGMENT_TYPE::FREE_ATOM)
+                    _faFiles.push_back(*it);
+                else if (fType == Constants::FRAGMENT_TYPE::ERROR)
+                    _invalid.push_back(*it);
+                else
+                    _valid[*it] = fType;
+            }
+            else
+            {
+                if (fType != Constants::FRAGMENT_TYPE::ERROR)
+                    _valid[*it] = fType;
+                else
+                    _invalid.push_back(*it);
+            }
         }
     }
 
 public:
-
     /*
      *  Does the input file conform to what we allow for fragment file names?
      *
@@ -95,10 +109,10 @@ public:
      *    (3) If the prefix is not valid the file prefix may contain
      *            brick
      *            linker
-     * 
+     *
      * Assumes input of a file name (no path information)
      */
-    static Constants::FRAGMENT_TYPE isValidFileName(const fs::path& p)
+    static Constants::FRAGMENT_TYPE isValidFileName(const fs::path &p)
     {
         if (p.empty())
         {
@@ -109,21 +123,24 @@ public:
         if (!FileUtilities::hasValidExtension(p, Constants::INPUT_SDF_FILE_EXTENSION))
         {
             std::cerr << "Extension of file " << p.string() << " is not "
-                << Constants::INPUT_SDF_FILE_EXTENSION
-                << " as required." << std::endl;
+                      << Constants::INPUT_SDF_FILE_EXTENSION
+                      << " as required." << std::endl;
 
             return Constants::FRAGMENT_TYPE::ERROR;
         }
 
         // l- b- r- are unambiguous
         Constants::FRAGMENT_TYPE fType = hasUnambiguousValidPrefix(p.filename().string());
-        if (fType != Constants::FRAGMENT_TYPE::ERROR) return fType;
+        if (fType != Constants::FRAGMENT_TYPE::ERROR)
+            return fType;
 
         // u- all- are ambiguous
-        if (!hasAmbiguousValidPrefix(p.filename().string())) return Constants::FRAGMENT_TYPE::ERROR;
+        if (!hasAmbiguousValidPrefix(p.filename().string()))
+            return Constants::FRAGMENT_TYPE::ERROR;
 
         fType = hasValidInternalIdentifier(p.stem().string());
-        if (fType != Constants::FRAGMENT_TYPE::ERROR) return fType;
+        if (fType != Constants::FRAGMENT_TYPE::ERROR)
+            return fType;
 
         // Otherwise we have an error setting
         std::string substrs = Utilities::join(", ", Constants::ACCEPTABLE_INPUT_FILE_SUBSTRS);
@@ -141,9 +158,9 @@ public:
     //     'b' (brick)
     //     'l' (linker)
     //     'r' (rigid) --to be consistent with eSynth v1.0
-	//     'fa' (free atom)
+    //     'fa' (free atom)
     //
-    static Constants::FRAGMENT_TYPE hasUnambiguousValidPrefix(const std::string& name)
+    static Constants::FRAGMENT_TYPE hasUnambiguousValidPrefix(const std::string &name)
     {
         std::string preDash = "";
         std::string postDash = "";
@@ -152,12 +169,15 @@ public:
         // Is the prefix of the given file in our accepted list?
         if (!Utilities::contains(Constants::UNAMBIGUOUS_ACCEPTABLE_INPUT_FILE_PREFIXES, preDash))
 
-        
-        Utilities::tolower(preDash);
-        if (preDash == Constants::BRICK_PREFIX) return Constants::FRAGMENT_TYPE::BRICK;
-        if (preDash == Constants::RIGID_PREFIX) return Constants::FRAGMENT_TYPE::BRICK;
-        if (preDash == Constants::LINKER_PREFIX) return Constants::FRAGMENT_TYPE::LINKER;
-        if (preDash == Constants::FREE_ATOM_PREFIX) return Constants::FRAGMENT_TYPE::FREE_ATOM;
+            Utilities::tolower(preDash);
+        if (preDash == Constants::BRICK_PREFIX)
+            return Constants::FRAGMENT_TYPE::BRICK;
+        if (preDash == Constants::RIGID_PREFIX)
+            return Constants::FRAGMENT_TYPE::BRICK;
+        if (preDash == Constants::LINKER_PREFIX)
+            return Constants::FRAGMENT_TYPE::LINKER;
+        if (preDash == Constants::FREE_ATOM_PREFIX)
+            return Constants::FRAGMENT_TYPE::FREE_ATOM;
 
         return Constants::FRAGMENT_TYPE::ERROR;
     }
@@ -167,7 +187,7 @@ public:
     //     'all'
     //     'u;
     //
-    static bool hasAmbiguousValidPrefix(const std::string& name)
+    static bool hasAmbiguousValidPrefix(const std::string &name)
     {
         std::string preDash = "";
         std::string postDash = "";
@@ -180,9 +200,9 @@ public:
     // (3) If the prefix is not valid the file prefix may contain (as a substring)
     //     brick
     //     linker
-	//     free-atom
+    //     free-atom
     //
-    static Constants::FRAGMENT_TYPE hasValidInternalIdentifier(const std::string& prefix)
+    static Constants::FRAGMENT_TYPE hasValidInternalIdentifier(const std::string &prefix)
     {
         std::string copy = prefix;
         Utilities::tolower(copy);

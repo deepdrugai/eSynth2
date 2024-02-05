@@ -18,7 +18,6 @@
 #ifndef _MOLECULE_GUARD
 #define _MOLECULE_GUARD 1
 
-
 #include <string>
 #include <cstring> // for memset
 #include <vector>
@@ -26,9 +25,7 @@
 #include <map>
 #include <pthread.h>
 
-
 #include <openbabel/mol.h>
-
 
 #include "Bond.h"
 #include "Atom.h"
@@ -48,161 +45,160 @@ class SimpleFragmentGraph;
 
 class Molecule
 {
-  public:
-    Molecule();
-    Molecule(OpenBabel::OBMol* mol, const std::string& theSMI);   //, MoleculeT t);
-    virtual ~Molecule();
+public:
+  Molecule();
+  Molecule(OpenBabel::OBMol *mol, const std::string &theSMI); //, MoleculeT t);
+  virtual ~Molecule();
 
-    void setUniqueIndexID(unsigned int id) { uniqueIndexID = id; }
-    unsigned int getUniqueIndexID() const { return uniqueIndexID; }
+  void setUniqueIndexID(unsigned int id) { uniqueIndexID = id; }
+  unsigned int getUniqueIndexID() const { return uniqueIndexID; }
+  bool valid = true;
 
-    //
-    // Get Functions
-    //
-    virtual bool IsLinker() const { return false; }
-    virtual bool IsComplex() const { return !this->IsLinker() && !this->IsBrick(); }
-    virtual bool IsBrick() const { return false; }
+  //
+  // Get Functions
+  //
+  virtual bool isValid() const { return valid; }
+  virtual bool IsLinker() const { return false; }
+  virtual bool IsComplex() const { return !this->IsLinker() && !this->IsBrick(); }
+  virtual bool IsBrick() const { return false; }
 
-    bool isLipinskiCompliant() const;
-    double getMolWt() const { return MolWt; }
-    double getHBD() const { return HBD; }
-    double getHBA1() const { return HBA1; }
-    double getlogP() const { return logP; }
+  bool isLipinskiCompliant() const;
+  double getMolWt() const { return MolWt; }
+  double getHBD() const { return HBD; }
+  double getHBA1() const { return HBA1; }
+  double getlogP() const { return logP; }
 
-    int getNumberOfAtoms() const { return this->atoms.size(); }
-    int getNumberOfBonds() const { return this->bonds.size(); }
+  int getNumberOfAtoms() const { return this->atoms.size(); }
+  int getNumberOfBonds() const { return this->bonds.size(); }
 
-    // OpenBabel::OBMol* getOpenBabelMol() const { return obmol; }
-    // void getSMI(std::string& s) const { s = smi; }
-    // void setSMI(std::string that) { smi = that; }
+  // OpenBabel::OBMol* getOpenBabelMol() const { return obmol; }
+  // void getSMI(std::string& s) const { s = smi; }
+  // void setSMI(std::string that) { smi = that; }
 
-    SimpleFragmentGraph* getFingerprint() const;
+  SimpleFragmentGraph *getFingerprint() const;
 
-    bool addBond(int xID, int yID, unsigned int order); //, eTypeOfBondT bt, eStatusBitT s);
+  bool addBond(int xID, int yID, unsigned int order); //, eTypeOfBondT bt, eStatusBitT s);
 
-    std::string toString() const;
-    friend std::ostream& operator<< (std::ostream& os, const Molecule& mol);
-    virtual bool operator==(const Molecule& that) const;
-    std::vector<EdgeAggregator*>* Compose(const Molecule&) const;
+  std::string toString() const;
+  friend std::ostream &operator<<(std::ostream &os, const Molecule &mol);
+  virtual bool operator==(const Molecule &that) const;
+  std::vector<EdgeAggregator *> *Compose(const Molecule &) const;
 
-    // Acquire a summary of the linkers and rigids in this molecule.
-    void GetNumLinkersBricks(int& numLinkers, int& numUniqueLinkers,
-                             int& numBricks, int& numUniqueBricks) const;
+  // Acquire a summary of the linkers and rigids in this molecule.
+  void GetNumLinkersBricks(int &numLinkers, int &numUniqueLinkers,
+                           int &numBricks, int &numUniqueBricks) const;
 
+  void openBabelPredictLipinski(OpenBabel::OBMol *obmol);
+  static bool isOpenBabelLipinskiCompliant(OpenBabel::OBMol &mol);
+  void estimateLipinski(const Molecule &mol1, const Molecule &mol2);
+  static bool willExceedAdditiveThresholds(const Molecule &mol1, const Molecule &mol2);
+  // Constructs a simple version of this molecule consisting of the fragment counts
+  // and the fingerprint (fragment graph)
+  MinimalMolecule *ConstructMinimalMolecule();
+  SmiMinimalMolecule *ConstructSmiMinimalMolecule();
 
-    void openBabelPredictLipinski(OpenBabel::OBMol* obmol);
-    static bool isOpenBabelLipinskiCompliant(OpenBabel::OBMol& mol);
-    void estimateLipinski(const Molecule &mol1, const Molecule &mol2);
-    static bool willExceedAdditiveThresholds(const Molecule &mol1, const Molecule &mol2);
-    // Constructs a simple version of this molecule consisting of the fragment counts
-    // and the fingerprint (fragment graph)
-    MinimalMolecule* ConstructMinimalMolecule();
-    SmiMinimalMolecule* ConstructSmiMinimalMolecule();
+  std::string ConstructSMI() const;
 
-    std::string ConstructSMI() const;
+  // The 'size' of a molecule is based on the number of total fragments.
+  unsigned int size() const;
 
-    // The 'size' of a molecule is based on the number of total fragments.
-    unsigned int size() const;
+  // Initialize any containers to track fragments (linkers / rigids)
+  void initFragmentDevices();
 
-    // Initialize any containers to track fragments (linkers / rigids)
-    void initFragmentDevices();
+  // Calculate the number of linkers / rigids (copies and unique)
+  // void calcFragmentInfo();
 
-    // Calculate the number of linkers / rigids (copies and unique)
-    //void calcFragmentInfo();
+  // Initialize the fragment container
+  void initFragmentInfo();
 
-    // Initialize the fragment container
-    void initFragmentInfo();
+  // Initialize the graph-based representation of the fragment
+  void initGraphRepresentation();
 
-    // Initialize the graph-based representation of the fragment
-    void initGraphRepresentation();
+  // Collection of linkers and rigids for this synthesis.
+  static std::vector<Molecule *> baseMolecules;
+  static void SetBaseMoleculeInfo(const std::vector<Molecule *> baseMols,
+                                  unsigned int numBricks, unsigned int numLinkers);
 
-    // Collection of linkers and rigids for this synthesis.
-    static std::vector<Molecule*> baseMolecules;
-    static void SetBaseMoleculeInfo(const std::vector<Molecule*> baseMols,
-                                    unsigned int numBricks, unsigned int numLinkers); 
+  static unsigned int NUM_UNIQUE_FRAGMENTS;
 
-    static unsigned int NUM_UNIQUE_FRAGMENTS;
+  // Lock openbabel
+  void init_openbabel_lock();
+  static pthread_mutex_t openbabel_lock;
 
-    // Lock openbabel
-    void init_openbabel_lock();
-    static pthread_mutex_t openbabel_lock;
+  void WriteToOpenBabelFormat(std::string &) const;
 
-    void WriteToOpenBabelFormat(std::string&) const;
-
-    static bool ProbabilisticExclusion(const Molecule* const);
+  static bool ProbabilisticExclusion(const Molecule *const);
 
   //
   /////////////////////////////////////////////////////////////////////////
   //
-  protected:
+protected:
+  //
+  // Instance Variables
+  //
 
-    //
-    // Instance Variables
-    //
+  // The unique identifier for this molecule
+  unsigned int uniqueIndexID;
 
-    // The unique identifier for this molecule
-    unsigned int uniqueIndexID;
+  // Local atoms and bonds
+  std::vector<Atom *> atoms;
+  std::vector<Bond> bonds;
 
-    // Local atoms and bonds
-    std::vector<Atom*> atoms;
-    std::vector<Bond> bonds;
+  // Used for molecular comparison; the molecule represented as a graph
+  SimpleFragmentGraph *fingerprint;
 
-    // Used for molecular comparison; the molecule represented as a graph
-    SimpleFragmentGraph* fingerprint;
+  // An array used to count the number of each specific linker /
+  // rigid in this molecule
+  unsigned short int *fragmentCounter;
 
-    // An array used to count the number of each specific linker /
-    // rigid in this molecule
-    unsigned short int* fragmentCounter;
+  //
+  // Lipinski Descriptors
+  //
+  double MolWt;
+  double HBD;
+  double HBA1;
+  double logP;
 
-    //
-    // Lipinski Descriptors
-    //
-    double MolWt;
-    double HBD;
-    double HBA1;
-    double logP;
+  //
+  // Statics
+  //
 
-    //
-    // Statics
-    //
+  // Each linker / rigid has connection points;
+  // we create unique ids for those connections.
+  static IdFactory connectionIdMaker;
 
-    // Each linker / rigid has connection points;
-    // we create unique ids for those connections.
-    static IdFactory connectionIdMaker;
-
-    //
-    // Inline functions
-    //
-    virtual void parseAppendix(std::string& comment, int numAtoms = 0)
-    {
-        std::cerr << "Called Wrong parseAppendix::MOLECULE" << std::endl;
-    }
+  //
+  // Inline functions
+  //
+  virtual void parseAppendix(std::string &comment, int numAtoms = 0)
+  {
+    std::cerr << "Called Wrong parseAppendix::MOLECULE" << std::endl;
+  }
 
   //
   /////////////////////////////////////////////////////////////////////////
   //
-  private:
-    void localizeOBMol(OpenBabel::OBMol* obmol);
+private:
+  void localizeOBMol(OpenBabel::OBMol *obmol);
 
-    bool exceedsMaxEstimatedThresholds();
-    bool ContainsLoops() const;
-    bool satisfiesMoleculeSynthesisCriteria();
-    /* Molecule* ComposeToNewOpenBabelMolecule(const Molecule& that,
-                                            int thisAtomIndex,
-                                            int thatAtomIndex) const;
-    */
-    Molecule* ComposeToNewLocalMolecule(const Molecule& that,
-                                        int thisAtomIndex,
-                                        int thatAtomIndex) const;
+  bool exceedsMaxEstimatedThresholds();
+  bool ContainsLoops() const;
+  bool satisfiesMoleculeSynthesisCriteria();
+  /* Molecule* ComposeToNewOpenBabelMolecule(const Molecule& that,
+                                          int thisAtomIndex,
+                                          int thatAtomIndex) const;
+  */
+  Molecule *ComposeToNewLocalMolecule(const Molecule &that,
+                                      int thisAtomIndex,
+                                      int thatAtomIndex) const;
 
+  static unsigned int BRICK_INDEX_START;
+  static unsigned int BRICK_INDEX_END;
+  static unsigned int LINKER_INDEX_START;
+  static unsigned int LINKER_INDEX_END;
+  static unsigned int FRAGMENT_END_INDEX;
 
-    static unsigned int BRICK_INDEX_START;
-    static unsigned int BRICK_INDEX_END;
-    static unsigned int LINKER_INDEX_START;
-    static unsigned int LINKER_INDEX_END;
-    static unsigned int FRAGMENT_END_INDEX;
-
-    static EdgeDatabase edges;
+  static EdgeDatabase edges;
 };
 
 #endif
