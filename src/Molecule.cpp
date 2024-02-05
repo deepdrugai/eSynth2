@@ -795,6 +795,25 @@ Molecule* Molecule::ComposeToNewLocalMolecule(const Molecule& that,
     newLocal->atoms[thisAtomIndex-1]->addExternalConnection(); // thatAtomIndex-1);
     newLocal->atoms[thatAtomIndex-1]->addExternalConnection(); // thisAtomIndex-1);
 
+    // CTA: 2 / 2024:
+    // Bricks normally have one connection and thus ConstructAtom takes
+    //                        BrickConnectableAtom -> Atom    (with no more connection capability)
+    // In the case where a Brick can connect to more than one other atom, we want to ensure that
+    // we remove one of those possible connections (by removing an AtomType from possible Brick connections)
+	if (newLocal->atoms[thisAtomIndex-1]->IsConnectable() &&
+        newLocal->atoms[thisAtomIndex-1]->IsBrickAtom())
+    {
+        BrickConnectableAtom* bca = static_cast<BrickConnectableAtom*>(newLocal->atoms[thisAtomIndex-1]);
+        bca->reduceAtomType(newLocal->atoms[thatAtomIndex-1]->getAtomType());
+    }
+    if (newLocal->atoms[thatAtomIndex-1]->IsConnectable() &&
+        newLocal->atoms[thatAtomIndex-1]->IsBrickAtom())
+    {
+        BrickConnectableAtom* bca = static_cast<BrickConnectableAtom*>(newLocal->atoms[thatAtomIndex-1]);
+	    bca->reduceAtomType(newLocal->atoms[thisAtomIndex-1]->getAtomType());
+    }
+    // End 2/2024 bug repair
+
     // Create the fingerprint fragment graph for this new molecule.
     // unsigned short fromFragmentID = newLocal->atoms[thisAtomIndex - 1]->getOwnerFragment()->getUniqueIndexID();
     // unsigned short toFragmentID = newLocal->atoms[thatAtomIndex - 1]->getOwnerFragment()->getUniqueIndexID();
