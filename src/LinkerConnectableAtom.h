@@ -39,7 +39,7 @@ class LinkerConnectableAtom : public ConnectableAtom
     bool CanConnectTo(const Atom& that) const;
 
     bool IsLinkerAtom() const { return true; }
-    bool IsBrickAtom() const { return false; }
+    bool IsRigidAtom() const { return false; }
 
     LinkerConnectableAtom(const LinkerConnectableAtom* const);
     LinkerConnectableAtom(int maxConn, const std::string&, const Linker* const owner);

@@ -72,7 +72,7 @@ class ConnectableAtom : public Atom
     virtual bool CanConnectTo(const Atom& that) const { throw "Should not be called."; }
 
     virtual bool IsLinkerAtom() const { throw "Should not be called."; }
-    virtual bool IsBrickAtom() const { throw "Should not be called."; }
+    virtual bool IsRigidAtom() const { throw "Should not be called."; }
 
     virtual bool IsSimple() const { return false; }
     virtual bool IsConnectable() const { return true; }

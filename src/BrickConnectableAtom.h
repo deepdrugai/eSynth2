@@ -44,10 +44,6 @@ class BrickConnectableAtom : public ConnectableAtom
     BrickConnectableAtom(const std::string&, const Brick* const owner, const std::vector<std::string>& types);
     ~BrickConnectableAtom();
 
-    // CTA 2/2024 : a connection has been made with of Atom of aType;
-	// remove this as a connection possibility
-    bool reduceAtomType(const AtomT& aType);
-
     bool IsLinkerAtom() const { return false; }
     bool IsBrickAtom() const { return true; }
 
