@@ -54,7 +54,7 @@ BrickConnectableAtom::BrickConnectableAtom(const std::string& aType, const Brick
 {
     this->atomType = AtomT(aType);
     this->ownerFragment = (Molecule*)owner;
-    this->theAtom.maxConnect = 1;
+    this->theAtom.maxConnect = connTypes.size();  // CTA:  2 / 2024
     this->theAtom.numExternalConnections = 0;
     this->theAtom.numAllowConns = connTypes.size();
 
@@ -125,6 +125,49 @@ bool BrickConnectableAtom::CanConnectTo(const Atom& that) const
     return false;
 }
 
+/****************************************************************************************/
+  // CTA 2/2024 : a connection has been made with of Atom of aType;
+	// remove this possibility
+bool BrickConnectableAtom::reduceAtomType(const AtomT& aType)
+{
+    // Remove the atom type from the allowableTypes list
+    int index = -1;
+    for (int a = 0; a < this->theAtom.numAllowConns; a++)
+    {
+        if (*(this->allowableTypes[a]) == aType)
+        {
+            index = a;
+            break;
+        }
+    }
+
+    // Not found; produce a meaningful error
+    if (index == -1)
+    {
+        std::cerr << "Expected to find atom type " << aType
+                  << " in the list of allowable types: ";
+        for (int a = 0; a < this->theAtom.numAllowConns; a++)
+        {
+            std:: cerr << allowableTypes[a]->toString() << " ";
+        }
+        std::cerr << std::endl;
+
+        return false;
+    }
+
+    delete allowableTypes[index];
+
+    // Shift all other atomtypes down the list starting at the given index
+    for ( ; index < this->theAtom.numAllowConns - 1; index++)
+    {
+        allowableTypes[index] = allowableTypes[index + 1];
+    }
+
+    // Update the number of allowable connection types to reflect one has been used.
+    this->theAtom.numAllowConns--;
+
+    return true;
+}
 /****************************************************************************************/
 
 std::string BrickConnectableAtom::toString() const
