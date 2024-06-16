@@ -648,8 +648,8 @@ void OBWriter::ConvertToSMI(const std::string& sdf, std::string& smi)
     // store sdf into an open babel molecule
     OpenBabel::OBMol mol;
 
-    // Use the static converter in OBWriter
-    SDF_to_SMI_conv.SetInAndOutFormats("SDF", "SMI");
+    // Use the static converter in OBWriter; output for Canonical SMILES 6/2024
+    SDF_to_SMI_conv.SetInAndOutFormats("SDF", "CAN");
 
     // Convert to SDF
     SDF_to_SMI_conv.ReadString(&mol, sdf);
