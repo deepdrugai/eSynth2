@@ -43,6 +43,7 @@ public:
     static const std::string CMD_ARG_USAGE;
     static const std::string CMD_ARG_VERSION;
     static const std::string CMD_ARG_SERIAL;
+    static const std::string CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD;  // CTA: 6/2024
     static const std::vector<std::string> CMD_ARGS_SINGLETON;
     static const std::pair<std::string, std::string> SMI_ONLY_DESCIPTION;
 
@@ -95,6 +96,9 @@ public:
     static std::string DEFAULT_OUTPUT_DIR;
 
     static double DEFAULT_TANIMOTO;
+
+    // CTA: 6 / 2024
+    static bool DEFAULT_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD;
 
     // upper bound for level-based threading synthesis
     static unsigned MAX_SYNTH_LEVEL_BOUND;

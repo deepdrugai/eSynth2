@@ -397,6 +397,9 @@ void Instantiator::InitializeSynthesis(std::vector<Linker*>& linkers,
 	{
 		for (unsigned m2 = m1; m2 < baseMolecules.size(); m2++)
 		{
+			// Limit synthesis to unique fragments CTA: 6 / 2024
+	        if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD && m1 == m2) continue;
+
 			std::vector<EdgeAggregator*>* newEdges =
 				baseMolecules[m1]->Compose(*baseMolecules[m2]);
 
@@ -601,12 +604,19 @@ void Instantiator::InitializeBaseMolecules(const std::vector<Brick*>& bricks,
 //
 void Instantiator::SynthesizeWithMolecule(const Molecule* const currentMol, int level)
 {
+	// CTA: 6 / 2024 currentMol->printConstituentFragments();
+
 	//
 	// Compose with all of the base molecules
 	//
 	for (unsigned m = 0; m < baseMolecules.size(); m++)
 	{
-		std::vector<EdgeAggregator*>* newEdges = currentMol->Compose(*baseMolecules[m]);
+		// CTA: 6 / 2024
+		// Only allow multiple copies of the same fragment when specified
+        if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD && currentMol->hasFragment(m))
+		    continue;
+
+        std::vector<EdgeAggregator*>* newEdges = currentMol->Compose(*baseMolecules[m]);
 
 		//
 		// Add the molecule to the next level queue; this depends on the level

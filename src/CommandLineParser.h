@@ -318,6 +318,11 @@ private:
             Options::setSerialExecution();
             _runtimeArgs[Constants::CMD_ARG_SERIAL] = "";
         }
+        else if (arg == Constants::CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD)
+        {
+            Options::setOnlyUseUniqueFragments();
+            _runtimeArgs[Constants::CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD] = "";
+        }
 
         //
         // Paired arguments

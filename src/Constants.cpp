@@ -37,11 +37,13 @@ const std::string Constants::CMD_ARG_FA_FILES = "skip-fa";
 const std::string Constants::CMD_ARG_USAGE = "usage";
 const std::string Constants::CMD_ARG_VERSION = "version";
 const std::string Constants::CMD_ARG_SERIAL = "serial";
+const std::string Constants::CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD = "unique-build";   // CTA: 6/2024
 const std::vector<std::string> Constants::CMD_ARGS_SINGLETON = {Constants::CMD_ARG_SMI_ONLY,
                                                                 Constants::CMD_ARG_FA_FILES,
                                                                 Constants::CMD_ARG_USAGE,
                                                                 Constants::CMD_ARG_VERSION,
-                                                                Constants::CMD_ARG_SERIAL};
+                                                                Constants::CMD_ARG_SERIAL,
+                                                                Constants::CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD};
 
 // Paired (arg, arg-value) command-line arguments
 const std::string Constants::CMD_ARG_OUTPUT_FILE = "o";
@@ -61,18 +63,19 @@ const std::vector<std::string> Constants::CMD_ARGS_PAIRED = {Constants::CMD_ARG_
 // Help descriptions for each possible argument
 //
 const std::map<std::string, std::string> Constants::USAGE_MAP = {
-    std::make_pair(Constants::CMD_ARG_SMI_ONLY, "\t\tOutput molecules in SMILES format."),
-    std::make_pair(Constants::CMD_ARG_FA_FILES, "\t\tFree Atom Files."),
-    std::make_pair(Constants::CMD_ARG_USAGE, "\t\tThis usage information"),
-    std::make_pair(Constants::CMD_ARG_VERSION, "\t\tVersion information"),
-    std::make_pair(Constants::CMD_ARG_SERIAL, "\t\tSerial execution compared to -threaded"),
+    std::make_pair(Constants::CMD_ARG_SMI_ONLY, "\tOutput molecules in SMILES format."),
+    std::make_pair(Constants::CMD_ARG_FA_FILES, "\tFree Atom Files."),
+    std::make_pair(Constants::CMD_ARG_USAGE, "\tThis usage information"),
+    std::make_pair(Constants::CMD_ARG_VERSION, "\tVersion information"),
+    std::make_pair(Constants::CMD_ARG_SERIAL, "\tSerial execution compared to -threaded"),
+    std::make_pair(Constants::CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD, "\tConstructed molecules will not contain repeated fragments; all input fragments are considered unique"),
 
     std::make_pair(Constants::CMD_ARG_OUTPUT_FILE, "<file>\tOutput file suffix"),
     std::make_pair(Constants::CMD_ARG_OUTPUT_DIR, "<path>\tPath to the desired output directory."),
     std::make_pair(Constants::CMD_ARG_VALIDATION_FILE, "<file>\tValidation will be performed with the given file"),
     std::make_pair(Constants::CMD_ARG_TANIMOTO_COEFF, "<float>\tTanimoto coefficient used to compare molecules for equivalence"),
     std::make_pair(Constants::CMD_ARG_LEVEL_BOUND, "<int>\tMaxmimum number of fragments allowed in a molecule"),
-    std::make_pair(Constants::CMD_ARG_PROB_LEVEL, "\t\tNumber of fragments in which to start probabilistically omitting molecules.")};
+    std::make_pair(Constants::CMD_ARG_PROB_LEVEL, "\tNumber of fragments in which to start probabilistically omitting molecules.")};
 
 //
 // Input file arguments
@@ -108,6 +111,9 @@ std::string Constants::DEFAULT_OUTPUT_SMI_FILE = "molecules.smi";
 std::string Constants::DEFAULT_OUTPUT_DIR = "output";
 
 double Constants::DEFAULT_TANIMOTO = 0.95;
+
+// CTA: 6 / 2024
+bool Constants::DEFAULT_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD = false;
 
 unsigned Constants::MAX_SYNTH_LEVEL_BOUND = 20;
 unsigned Constants::DEFAULT_PROBABILITY_PRUNE_LEVEL_START = 5;

@@ -71,6 +71,8 @@ public:
   int getNumberOfAtoms() const { return this->atoms.size(); }
   int getNumberOfBonds() const { return this->bonds.size(); }
 
+  bool hasFragment(int uniqueId) const { return this->fragmentCounter[uniqueId] != 0; }
+
   // OpenBabel::OBMol* getOpenBabelMol() const { return obmol; }
   // void getSMI(std::string& s) const { s = smi; }
   // void setSMI(std::string that) { smi = that; }
@@ -128,6 +130,14 @@ public:
   void WriteToOpenBabelFormat(std::string &) const;
 
   static bool ProbabilisticExclusion(const Molecule *const);
+
+  // CTA: 6/2024
+  void printConstituentFragments() const
+  {
+    for (unsigned int m = 0; m < Molecule::NUM_UNIQUE_FRAGMENTS; m++)
+        std::cout << this->fragmentCounter[m] << " ";
+    std::cout << std::endl;
+  }
 
   //
   /////////////////////////////////////////////////////////////////////////

@@ -74,6 +74,7 @@ struct Options
     static double TANIMOTO;
     static unsigned PROBABILITY_PRUNE_LEVEL_START;
     static unsigned USER_DEFINED_LEVEL_BOUND;
+    static bool ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD; // CTA: 6 / 2024
 
     // SMILES format for synthesized molecules
     static void setSMILESOutputOnly() { SMI_ONLY = true; }
@@ -83,6 +84,8 @@ struct Options
 
     // Non-threaded execution
     static void setSerialExecution() { SERIAL = true; }
+
+    static void setOnlyUseUniqueFragments() { ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD = true; } // CTA: 6 / 2024
 
     static void setOutputFile(const std::string &name) { OUTPUT_FILE = name; }
     static void setOutputDirectory(const std::string &name) { OUTPUT_DIRECTORY = name; }
