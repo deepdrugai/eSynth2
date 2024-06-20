@@ -649,7 +649,7 @@ void OBWriter::ConvertToSMI(const std::string& sdf, std::string& smi)
     OpenBabel::OBMol mol;
 
     // Use the static converter in OBWriter; output for Canonical SMILES 6/2024
-    SDF_to_SMI_conv.SetInAndOutFormats("SDF", "CAN");
+    SDF_to_SMI_conv.SetInAndOutFormats("SDF", "SMI");
 
     // Convert to SDF
     SDF_to_SMI_conv.ReadString(&mol, sdf);

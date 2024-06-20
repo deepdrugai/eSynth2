@@ -612,9 +612,9 @@ void Instantiator::SynthesizeWithMolecule(const Molecule* const currentMol, int 
 	for (unsigned m = 0; m < baseMolecules.size(); m++)
 	{
 		// CTA: 6 / 2024
-		// Only allow multiple copies of the same fragment when specified
-        if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD && currentMol->hasFragment(m))
-		    continue;
+		// Disallow multiple copies of the same fragment when specified by the user
+        if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD && 
+		    currentMol->hasFragment(baseMolecules[m]->getUniqueIndexID())) continue;
 
         std::vector<EdgeAggregator*>* newEdges = currentMol->Compose(*baseMolecules[m]);
 

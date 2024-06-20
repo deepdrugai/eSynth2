@@ -109,6 +109,15 @@ int main(int argc, const char **argv)
 	bricks = inf.getBricks();
 	linkers = inf.getLinkers();
 
+    // When we only are interested in unique fragment construction,
+	// we can short circuit all other operations.
+    if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD && bricks.size() + linkers.size() == 1)
+	{
+	   std::cerr << "Simngle fragment specified; unique fragment-based construction will not execute."
+	             << std::endl;
+       return 0;
+	}
+
 	//
 	// Bypass synthesis for acquiring information about the input fragments.
 	//
@@ -116,6 +125,7 @@ int main(int argc, const char **argv)
 	{
 		std::cout << "Calculated Lipinski Descriptors for input fragments, now exiting early."
 				  << " (Flag set in Constants.h)" << std::endl;
+        Cleanup(linkers, bricks);
 		return 0;
 	}
 
