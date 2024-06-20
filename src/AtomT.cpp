@@ -172,7 +172,7 @@ std::string AtomT::toString() const
       case ATOM_T_BROMINE:     oss << "Br"; break;
       case ATOM_T_BORON:       oss << "B"; break;
       case ATOM_T_IODINE:      oss << "I"; break;
-      case ATOM_T_SILICON:     oss << "Si"; break;
+      case ATOM_T_SILICON:     return "Si";
     }
 
     oss << ".";
