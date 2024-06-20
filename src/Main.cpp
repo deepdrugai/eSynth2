@@ -113,7 +113,7 @@ int main(int argc, const char **argv)
 	// we can short circuit all other operations.
     if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD && bricks.size() + linkers.size() == 1)
 	{
-	   std::cerr << "Simngle fragment specified; unique fragment-based construction will not execute."
+	   std::cerr << "Single fragment specified; unique fragment-based construction will not execute."
 	             << std::endl;
        return 0;
 	}
