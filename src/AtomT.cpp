@@ -55,6 +55,7 @@ AtomEnumT AtomT::convertToAtomEnum(const std::string& s)
     else if (s == "B")  return ATOM_T_BORON;
     else if (s == "I")  return ATOM_T_IODINE;
     else if (s == "Si") return ATOM_T_SILICON;
+    else if (s == "As") return ATOM_T_ARSENIC;
 
     // In case of emergency
     std::cerr << "Element |" << s << "| not recognized." << std::endl;
@@ -173,6 +174,7 @@ std::string AtomT::toString() const
       case ATOM_T_BORON:       oss << "B"; break;
       case ATOM_T_IODINE:      oss << "I"; break;
       case ATOM_T_SILICON:     return "Si";
+      case ATOM_T_ARSENIC:     return "As";
     }
 
     oss << ".";
@@ -210,6 +212,7 @@ std::string AtomT::getAtomType() const
       case ATOM_T_BORON:      return "B";
       case ATOM_T_IODINE:     return "I";
       case ATOM_T_SILICON:    return "Si";
+      case ATOM_T_ARSENIC:    return "As";
     }
 
     std::cerr << theAtomT.atomType << std::endl;
