@@ -38,14 +38,12 @@ public:
     // Command-line arguments
     //
     // Singleton command-line arguments
-    static const std::string CMD_ARG_SMI_ONLY;
     static const std::string CMD_ARG_FA_FILES;
     static const std::string CMD_ARG_USAGE;
     static const std::string CMD_ARG_VERSION;
     static const std::string CMD_ARG_SERIAL;
     static const std::string CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD;  // CTA: 6/2024
     static const std::vector<std::string> CMD_ARGS_SINGLETON;
-    static const std::pair<std::string, std::string> SMI_ONLY_DESCIPTION;
 
     // Paired (arg, arg-value) command-line arguments
     static const std::string CMD_ARG_OUTPUT_FILE;
@@ -53,7 +51,6 @@ public:
     static const std::string CMD_ARG_VALIDATION_FILE;
     static const std::string CMD_ARG_TANIMOTO_COEFF;
     static const std::string CMD_ARG_LEVEL_BOUND;
-    static const std::string CMD_ARG_PROB_LEVEL;
     static const std::vector<std::string> CMD_ARGS_PAIRED;
 
     // Help descriptions for each possible argument
@@ -100,19 +97,7 @@ public:
     // CTA: 6 / 2024
     static bool DEFAULT_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD;
 
-    // upper bound for level-based threading synthesis
     static unsigned MAX_SYNTH_LEVEL_BOUND;
-    static unsigned DEFAULT_PROBABILITY_PRUNE_LEVEL_START;
-
-    //
-    // v1.0 Constants
-    //
-
-    // Limiting factors on molecule generation.
-    static double MOLWT_UPPERBOUND;
-    static double HBD_UPPERBOUND;
-    static double HBA1_UPPERBOUND;
-    static double LOGP_UPPERBOUND;
 };
 
 const int NOT_FOUND = -1;
@@ -121,11 +106,5 @@ const int NOT_FOUND = -1;
 const bool DEBUG = true;
 
 const bool g_debug_output = false;
-
-const int THREAD_POOL_SIZE = 10;
-
-// skip the entire synthesis, just output lipinski descriptors for
-//  the input fragments to "initial_fragments_logfile.txt" and exit
-const bool g_calculate_lipinski_descriptors_for_input_fragments_only = false;
 
 #endif

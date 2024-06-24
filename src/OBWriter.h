@@ -23,14 +23,10 @@
 #include <string>
 #include <iostream>
 #include <queue>
-#include <pthread.h>
-
 
 #include <openbabel/mol.h>
 
-
 #include "Molecule.h"
-#include "Thread_Pool.h"
 #include "IdFactory.h"
 
 
@@ -40,35 +36,19 @@
 class OBWriter
 {
   public:
-     OBWriter(unsigned int numThreads);
+     OBWriter();
     ~OBWriter();
 
-    // static void InitializeFile(const char* fileName);
-    void OutputMoleculeInternal(unsigned int, unsigned int, Molecule&);
-//    void OutputMoleculeExternalSMI(Molecule&);
-    //void OutputMoleculeExternalSDF(Molecule&);
     void OutputMoleculeAppendExternalSMI(const std::string& smi);
-    void OutputMoleculeAppendExternalSDF(Molecule&);
-    static int OutputSingleMolecule(std::string smiMol);
-    static std::vector<OpenBabel::OBMol*> compliantMols;
 
     void IndicateSynthesisStarted();
     void IndicateSynthesisComplete();
     void InitiateOutputThreadPool();
-    void IndicateSMIwritingComplete() const;
 
     static void InitializeFile(const std::string& outFile);
 
-    void write(std::vector<Molecule> molecules);
-
     static void TurnValidationOff() { performValidation = false; }
-    static void SetPool(Thread_Pool<std::string, int>* thePool) { staticPool = thePool; }
-    static unsigned InputPoolSize() { return staticPool->in_q_size(); }
-    static unsigned OutputPoolSize() { return staticPool->out_q_size(); }
-    static unsigned NumCompliantMolecules() { return numCompliant; }
 
-    static void ScrubAndConvertToSMIInternal(OpenBabel::OBMol* mol, std::string& smi);
-    static void ScrubAndConvertToSMIExternal(OpenBabel::OBMol* mol, std::string& smi);
     static void ConvertToSMI(const std::string& sdf, std::string& smi);
 
   private:
@@ -79,28 +59,9 @@ class OBWriter
 
     static bool synthesis_complete;
     static bool performValidation;
-    static pthread_mutex_t smi_output_file_lock;
-    static pthread_mutex_t sdf_output_file_lock;
-    static pthread_mutex_t id_lock;
-    static pthread_mutex_t popen_lock;
-    static pthread_mutex_t smi_popen_lock;
-    static pthread_mutex_t writer_popen_lock;
-    static pthread_mutex_t valid_molecule_lock;
     static std::ofstream out;
     static std::string outFileName;
-    static unsigned numCompliant;
     static OpenBabel::OBConversion SDF_to_SMI_conv;
-
-
-    Thread_Pool<std::string, int>* pool;  
-
-    // The same static version of the pool.
-    static Thread_Pool<std::string, int>* staticPool;
-
-    void Initialize();
-
-    void ScrubAndExportSMI(std::vector<Molecule>& molecules);
-    void CallsBeforeWriting(std::vector<Molecule>& molecules);
 
     unsigned molCounter;
     std::string prefix;

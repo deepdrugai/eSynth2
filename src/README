@@ -31,17 +31,13 @@ Running (input):
 
 Comamand-line arguments are specified with a prefix '-' and may include the following:
   * -serial : specified serial execution
-  * -threaded : specifies a threaded execution; do not use.
   * -odir <directory> specifies the name of the directory where output will be placed (./<directory>); default is ./esynth_output_dir
   * -tc <value> defines the tanimoto coefficient as a value between 0 and 1; default is 0.95. 
   * -smi-only ; species all molecules are to be handled as SMI objects.
-  * -nopen ; specifies OpenBabel will not be used except for the first input from the SDF files and the resulting output in SMI format.
-  * -prob-level ; specifies what level to begin pruning molecules for probability purposes.
-  * -lip ; Allows the user to turn on Lipinski compliance of molecules (Lipinski compliance defaults to off).
 
-A typical run: ./esynth -nopen -serial -smi-only <linkers sdfs> <rigid sdfs>
+A typical run: ./esynth -smi-only <linkers sdfs> <brick sdfs>
 
-Sample: ./esynth -nopen -serial -smi-only -prob-level 2 l-test-linker1.sdf l-test-linker2.sdf  r-test-rigid1.sdf r-test-rigid2.sdf
+Sample: ./esynth -smi-only l-test-linker1.sdf l-test-linker2.sdf  r-test-rigid1.sdf r-test-rigid2.sdf
 
 All data files (*.sdf) must exist in the same directory as the executable.
 

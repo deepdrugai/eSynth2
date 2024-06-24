@@ -24,17 +24,16 @@
 #include <sstream>
 #include <cstdlib>
 #include <cctype>
-#include <mcheck.h>
 
 //
 // Open Babel
 //
-#include <openbabel/obconversion.h>
-#include <openbabel/mol.h>
-#include <openbabel/generic.h>
-#include <openbabel/atom.h>
-#include <openbabel/bond.h>
-#include <openbabel/groupcontrib.h>
+// #include <openbabel/obconversion.h>
+// #include <openbabel/mol.h>
+// #include <openbabel/generic.h>
+// #include <openbabel/atom.h>
+// #include <openbabel/bond.h>
+// #include <openbabel/groupcontrib.h>
 
 //
 // This project molecular representation
@@ -59,7 +58,7 @@
 // Synthesis-Based Functionality
 //
 #include "EdgeAnnotation.h"
-#include "Instantiator.h"
+#include "Builder.h"
 
 #include "Utilities.h"
 #include "IdFactory.h"
@@ -97,15 +96,6 @@ int main(int argc, const char **argv)
 	if (!inf.parse())
 		return 0;
 
-	// Remove log files from a previous run.
-	//
-	// v1.0
-	//
-	// system("rm molecules.smi");
-	// system("rm synth_log_initial_fragments_logfile.txt");
-	// system("rm ScrubAndExportSMI_logfile.txt");
-	// system("rm Validation_logfile.txt");
-
 	bricks = inf.getBricks();
 	linkers = inf.getLinkers();
 
@@ -118,25 +108,9 @@ int main(int argc, const char **argv)
        return 0;
 	}
 
-	//
-	// Bypass synthesis for acquiring information about the input fragments.
-	//
-	if (g_calculate_lipinski_descriptors_for_input_fragments_only)
-	{
-		std::cout << "Calculated Lipinski Descriptors for input fragments, now exiting early."
-				  << " (Flag set in Constants.h)" << std::endl;
-        Cleanup(linkers, bricks);
-		return 0;
-	}
-
 	// Output object for the nodes of the hypergraph.
-	OBWriter *writer = new OBWriter(Options::OBGEN_THREAD_POOL_SIZE);
-	if (Options::SMI_ONLY)
-	{
-		writer->InitializeFile(Options::OUTPUT_SMI_FILE);
-	}
-	else
-		writer->InitializeFile(Options::OUTPUT_FILE);
+	OBWriter* writer = new OBWriter();
+	writer->InitializeFile(Options::OUTPUT_SMI_FILE);
 
 	// Create On_the_Fly_Validators
 	OTFValidators validators(Options::VALIDATION_FILE);
@@ -144,32 +118,20 @@ int main(int argc, const char **argv)
 	// The main object that performs synthesis.
 	Instantiator instantiator(writer, cout, &validators);
 
-	// Run synthesis
-	if (Options::THREADED)
-		// instantiator.ThreadedInstantiate(linkers, bricks);
-		instantiator.ThreadedInstantiate(linkers, bricks);
-	else if (Options::SERIAL)
-		// instantiator.SerialInstantiate(linkers, bricks);
-		instantiator.SerialInstantiate(linkers, bricks);
+    instantiator.SerialInstantiate(linkers, bricks);
 
 	// With instantiation complete, output the TC-based analysis of generated
 	// molecule similarity
 	validators.writeToFiles();
 
 	unsigned inc = instantiator.getIncluded();
-	unsigned exc = instantiator.getExcluded();
 
-	std::cout << "Excluded (" << exc << "); Included (" << inc << ") \t Excluded: "
-			  << ((double)(exc) / (exc + inc)) << "\%" << std::endl;
+	std::cout << "Included (" << inc << ")" << std::endl;
 
-	// Deleting the writer will kill the thread pool.
 	delete writer;
 
-	// Cleanup(linkers, bricks);
 	Cleanup(linkers, bricks);
-	std::cerr << "Exiting the main thread." << std::endl;
-
-	// muntrace();
+	std::cerr << "Exiting." << std::endl;
 
 	return 0;
 }
