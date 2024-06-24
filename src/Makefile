@@ -28,14 +28,14 @@ GSL_LIB=/usr/include/gsl
 GSL_INC=/usr/include/
 EXE = esynth
 
-CFLAGS= $(OPT) -I$(GSL_INC) -L$(GSL_LIB) -I$(OB_INC) -L$(OB_LIB) -lz -lgsl -lgslcblas -lopenbabel -lpthread
+CFLAGS= $(OPT) -I$(GSL_INC) -L$(GSL_LIB) -I$(OB_INC) -L$(OB_LIB) -lz -lgsl -lgslcblas -lopenbabel
 
 
 ODIR=./obj
 
 DEPS = EdgeAggregator.h \
 	EdgeAnnotation.h \
-	Instantiator.h \
+	Builder.h \
 	Linker.h \
 	Molecule.h \
 	Brick.h \
@@ -51,30 +51,19 @@ DEPS = EdgeAggregator.h \
 	Validator.h \
 	OTFValidator.h \
 	OTFValidators.h \
-	obgen.h \
-	Thread_Pool.h \
 	IdFactory.h \
 	Constants.h \
-	LevelHashMap.h \
 	LikeMoleculesContainer.h \
-	MoleculeHashHypergraph.h \
 	MinimalMolecule.h \
 	SmiMinimalMolecule.h \
 	FixedSortedList.h \
-	EdgeDatabase.h \
 	FragmentEdgeMap.h \
 	SimpleFragmentGraph.h \
 	zpipe.h \
 	bloom_filter.hpp
 
-_OBGEN_DEPS = obgen.h 
-
-_WRITER_DEPS = compliantwriter.h 
-
-_TOSMI_DEPS = convertToSMI.h 
-
 _OBJ = Atom.o \
-	Instantiator.o \
+	Builder.o \
 	Linker.o\
 	Main.o \
 	Molecule.o \
@@ -92,7 +81,6 @@ _OBJ = Atom.o \
 	OTFValidators.o \
 	Options.o \
 	IdFactory.o \
-	obgen.o \
 	Constants.o \
 	FragmentEdgeMap.o \
 	zpipe.o
@@ -105,44 +93,6 @@ $(ODIR)/%.o: %.cpp $(DEPS)
 
 $(EXE): $(OBJ)
 	$(CC) $^ $(CFLAGS) -o $@
-
-
-
-_OBGEN_OBJ = synthobgen.o
-
-OBGEN_OBJ = $(patsubst %,$(ODIR)/%,$(_OBGEN_OBJ))
-
-$(ODIR)/%.o: %.cpp $(_OBGEN_DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-synthobgen: $(OBGEN_OBJ)
-	$(CC) $^ $(CFLAGS) -o $@
-
-
-
-_WRITER_OBJ = compliantwriter.o
-
-WRITER_OBJ = $(patsubst %,$(ODIR)/%,$(_WRITER_OBJ))
-
-$(ODIR)/%.o: %.cpp $(_WRITER_DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-compliantwriter: $(WRITER_OBJ)
-	$(CC) $^ $(CFLAGS) -o $@
-
-
-
-
-_TOSMI_OBJ = convertToSMI.o
-
-TOSMI_OBJ = $(patsubst %,$(ODIR)/%,$(_TOSMI_OBJ))
-
-$(ODIR)/%.o: %.cpp $(_TOSMI_DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-convertToSMI: $(TOSMI_OBJ)
-	$(CC) $^ $(CFLAGS) -o $@
-
 
 
 .PHONY: clean

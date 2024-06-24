@@ -23,19 +23,17 @@
 #include <vector>
 #include <memory>
 #include <map>
-#include <pthread.h>
 
 #include <openbabel/mol.h>
 
 #include "Bond.h"
 #include "Atom.h"
 #include "IdFactory.h"
-#include "obgen.h"
 #include "Constants.h"
 #include "MinimalMolecule.h"
 #include "SmiMinimalMolecule.h"
-#include "EdgeDatabase.h"
 #include "Utilities.h"
+
 using namespace OpenBabel;
 
 class EdgeAggregator;
@@ -62,7 +60,7 @@ public:
   virtual bool IsComplex() const { return !this->IsLinker() && !this->IsBrick(); }
   virtual bool IsBrick() const { return false; }
 
-  bool isLipinskiCompliant() const;
+  // bool isLipinskiCompliant() const;
   double getMolWt() const { return MolWt; }
   double getHBD() const { return HBD; }
   double getHBA1() const { return HBA1; }
@@ -90,12 +88,6 @@ public:
   void GetNumLinkersBricks(int &numLinkers, int &numUniqueLinkers,
                            int &numBricks, int &numUniqueBricks) const;
 
-  void openBabelPredictLipinski(OpenBabel::OBMol *obmol);
-  static bool isOpenBabelLipinskiCompliant(OpenBabel::OBMol &mol);
-  void estimateLipinski(const Molecule &mol1, const Molecule &mol2);
-  static bool willExceedAdditiveThresholds(const Molecule &mol1, const Molecule &mol2);
-  // Constructs a simple version of this molecule consisting of the fragment counts
-  // and the fingerprint (fragment graph)
   MinimalMolecule *ConstructMinimalMolecule();
   SmiMinimalMolecule *ConstructSmiMinimalMolecule();
 
@@ -123,13 +115,7 @@ public:
 
   static unsigned int NUM_UNIQUE_FRAGMENTS;
 
-  // Lock openbabel
-  void init_openbabel_lock();
-  static pthread_mutex_t openbabel_lock;
-
   void WriteToOpenBabelFormat(std::string &) const;
-
-  static bool ProbabilisticExclusion(const Molecule *const);
 
   // CTA: 6/2024
   void printConstituentFragments() const
@@ -137,6 +123,15 @@ public:
     for (unsigned int m = 0; m < Molecule::NUM_UNIQUE_FRAGMENTS; m++)
         std::cout << this->fragmentCounter[m] << " ";
     std::cout << std::endl;
+  }
+
+  // CTA: 6/2024
+  bool allFragmentsUsed() const
+  {
+    for (unsigned int m = 0; m < Molecule::NUM_UNIQUE_FRAGMENTS; m++)
+        if (this->fragmentCounter[m] == 0) return false;
+
+    return true;
   }
 
   //
@@ -194,10 +189,7 @@ private:
   bool exceedsMaxEstimatedThresholds();
   bool ContainsLoops() const;
   bool satisfiesMoleculeSynthesisCriteria();
-  /* Molecule* ComposeToNewOpenBabelMolecule(const Molecule& that,
-                                          int thisAtomIndex,
-                                          int thatAtomIndex) const;
-  */
+
   Molecule *ComposeToNewLocalMolecule(const Molecule &that,
                                       int thisAtomIndex,
                                       int thatAtomIndex) const;
@@ -207,8 +199,6 @@ private:
   static unsigned int LINKER_INDEX_START;
   static unsigned int LINKER_INDEX_END;
   static unsigned int FRAGMENT_END_INDEX;
-
-  static EdgeDatabase edges;
 };
 
 #endif

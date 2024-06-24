@@ -15,8 +15,8 @@
  *  along with esynth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _INSTANTIATOR_GUARD
-#define _INSTANTIATOR_GUARD 1
+#ifndef _BUILDER_GUARD
+#define _BUILDER_GUARD 1
 
 
 #include <vector>
@@ -24,13 +24,10 @@
 #include <queue>
 #include <iostream>
 #include <memory>
-#include <pthread.h>
-
 
 #include "Molecule.h"
 #include "Brick.h"
 #include "Linker.h"
-#include "MoleculeHashHypergraph.h"
 #include "EdgeAnnotation.h"
 #include "IdFactory.h"
 #include "OBWriter.h"
@@ -38,15 +35,7 @@
 #include "OTFValidators.h"
 
 
-// threads require a struct to pass multiple arguments
-struct Instantiator_ProcessLevel_Thread_Args
-{
-    int m; // level number
-    MoleculeHashHypergraph* graph; // The single hypergraph used by all levels.
-    void* this_pointer; // this pointer to calling class (Instantiator)
-};
-
-class Instantiator
+class Builder
 {
   private:
     // Create necessary synthesis containers and init the linkers and rigids
@@ -59,32 +48,17 @@ class Instantiator
     // To generate unique molecular ids
     IdFactory moleculeIDFactory;
 
-    // Contains all processed clauses and relationships amongst the clauses
-    MoleculeHashHypergraph*  graph;
-
     // debug stream
     std::ostream& ds;
 
     void HandleNewMolecules(std::queue<Molecule*>& worklist,
-                            pthread_mutex_t* wl_lock,
                             bloom_filter* const levelFilter,
                             std::vector<EdgeAggregator*>* newEdges);
 
     void SynthesizeWithMolecule(const Molecule* const currentMol, int level);
-	
-    std::pair<unsigned int, bool> AddNode(MinimalMolecule* const mol, unsigned int level);
 
     void InitOverallFilter();
     void InitLevelFilters();
-
-    // Lock the hypergraph (for adding)
-    pthread_mutex_t graph_lock;
-
-    // A list of locks for all of the producer-consumer queues.
-    pthread_mutex_t* queue_locks;
-
-    // All of the hierarchical level threads.
-    pthread_t* queue_threads;
 
     // Indicator that a level has completed processing.
     bool* completed_level;
@@ -98,9 +72,6 @@ class Instantiator
     // A bloom filter for each level beyond.
     bloom_filter* overall_filter;
 
-    // array of args for each level thread
-    Instantiator_ProcessLevel_Thread_Args *arg_pointer;
-
     // set of linkers and rigids (1-molecules)
     std::vector<Molecule*> baseMolecules;
 
@@ -110,9 +81,6 @@ class Instantiator
 
     // For output of molecules on the fly.
     OBWriter* const writer;
-
-    // How many molecules were excluded using probabilistic techniques
-    unsigned excluded;
 
     // The maximum number of molecules allowable in a queue.
     static const unsigned MAX_QUEUE_SIZES[22];
@@ -130,13 +98,12 @@ class Instantiator
     OTFValidators* on_the_fly_validators; 
 
   public:
-    Instantiator(OBWriter* obWriter = 0, std::ostream& out = std::cout, OTFValidators* validators = nullptr);
+    Builder(OBWriter* obWriter = 0, std::ostream& out = std::cout, OTFValidators* validators = nullptr);
 
-    ~Instantiator()
+    ~Builder()
     {
         delete[] level_queues;
         delete[] moleculeLevelCount;
-        delete graph;
 
         // Delete the Bloom filters.
         delete overall_filter;
@@ -145,37 +112,15 @@ class Instantiator
             if (*it != 0) delete *it;
         }
         filters.clear();
-
-        //
-        // Threaded destruction
-        //
-        if (Options::THREADED)
-        {
-            delete[] queue_locks;
-            delete[] queue_threads;
-            delete[] completed_level;
-            delete[] arg_pointer;
-        }
     }
 
-    // Main instantiation function for all linkers and rigids;
-    // worklist technique to construct the graph
-    MoleculeHashHypergraph* ThreadedInstantiate(std::vector<Linker*>& linkers,
-                                                std::vector<Brick*>& rigids);
-
-    // Main instantiation function for all linkers and rigidss;
-    // worklist technique to construct the graph
-    MoleculeHashHypergraph* SerialInstantiate(std::vector<Linker*>& linkers,
-                                              std::vector<Brick*>& rigids);
+    // Main build function for all linkers and bricks;
+    void SerialBuild(std::vector<Linker*>& linkers, std::vector<Brick*>& bricks);
 
     // Recursive assistant for serial processing.
-    void SerialInstantiateHelper(unsigned level, unsigned& processedMols);
+    void SerialBuildHelper(unsigned level, unsigned& processedMols);
 
     unsigned getIncluded() const { return overallMoleculeCount; }
-    unsigned getExcluded() const { return excluded; }
-
-    // thread must be implemented as friend class
-    friend void *ProcessLevel(void * args); // worker thread
 };
 
 #endif

@@ -96,9 +96,6 @@ void OTFValidator::validate(const std::string& smi)
 // 
 void OTFValidator::createValidationFP()
 {
-    // Begin open babel usage
-	pthread_mutex_lock(&Molecule::openbabel_lock);
-
 	OpenBabel::OBConversion obConversion;
 	obConversion.SetInFormat("MOL2");
 
@@ -110,9 +107,6 @@ void OTFValidator::createValidationFP()
 	// Get fingerprint for the validation molecule  
 	OpenBabel::OBFingerprint* fpType = OpenBabel::OBFingerprint::FindFingerprint("");
 	fpType->GetFingerprint(&validationMol, _validationFP);
-
-	// End open babel usage
-	pthread_mutex_unlock(&Molecule::openbabel_lock);
 }
 
 //
@@ -120,9 +114,6 @@ void OTFValidator::createValidationFP()
 //
 void OTFValidator::convertSMItoFP(const std::string& smi)
 {
-	// Begin open babel usage
-	pthread_mutex_lock(&Molecule::openbabel_lock);
-
 	// store result into a new molecule
 	OpenBabel::OBMol mol;
 	OpenBabel::OBConversion obConv;
@@ -140,9 +131,6 @@ void OTFValidator::convertSMItoFP(const std::string& smi)
 
 	// Acquire the fingerprint for the generated molecule for TC comparison 
 	fpType->GetFingerprint(&mol, _molFP);
-
-	// End open babel usage
-	pthread_mutex_unlock(&Molecule::openbabel_lock);
 }
 
 //
@@ -150,14 +138,8 @@ void OTFValidator::convertSMItoFP(const std::string& smi)
 //
 int OTFValidator::computeTanimoto()
 {
-	// Begin open babel usage
-	pthread_mutex_lock(&Molecule::openbabel_lock);
-
 	// Compute tanimoto coefficient for generated molecule and validation molecule  
 	double tanimoto = OpenBabel::OBFingerprint::Tanimoto(_validationFP, _molFP);
-
-	// End open babel usage
-	pthread_mutex_unlock(&Molecule::openbabel_lock);
 
 	// Take the first three digits of decimal in order to store in an index-based array 
 	int tcValue = trunc(tanimoto * 1000);
@@ -165,13 +147,6 @@ int OTFValidator::computeTanimoto()
 	// Check tcValue out of bound 
 	if (tcValue < 0 || tcValue > 1000)
 		std::cerr << "Tanimoto Coefficient computation fail. " << std::endl;
-
-	// Check the size of the fingerprint: should be 32
-	//std::cout << "\nValidation Fingerprint size: " << _validationFP.size() << std::endl;
-	//std::cout << "Generated Molecule Fingerprint size: " << _molFP.size() << std::endl;
-
-	// Print out the tanimoto cofficient
-	//std::cout << "\nTanimoto: " << tanimoto << std::endl;
 
 	return tcValue;
 }
@@ -196,8 +171,6 @@ void OTFValidator::analyzeTanimoto(int tcValue, const std::string& smi)
 	{
 		_highestTCmolecules.push_back(smi);
 	}
-
-	//std::cout << "\nMolecule with highest TC (in smi): " << _highestTCmol << std::endl << std::endl;
 }
 
 //
@@ -210,10 +183,7 @@ void OTFValidator::writeToFile()
 	std::string fileType = ".csv";
 	std::string fileName = _outputFileName + fileType; // change to the validation file name later
 
-	//std::cout << "OTFValidator: " << fileName << std::endl; 
-
 	std::ofstream outfile(fileName);
-	//outfile.open(fileName); 
 
 	for (int i = 0; i <= 1000; i++)
 	{
