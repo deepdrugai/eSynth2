@@ -341,35 +341,6 @@ bool Molecule::operator==(const Molecule& that) const
            d. An octanol-water partition coefficient log P not greater than 5.
 */
 
-//
-// (a) Check if the molecular weight is too heavy.
-//
-bool Molecule::exceedsMaxEstimatedThresholds()
-{
-    // We already checked if this molecule will exceed the upper bound for molecular weight.
-    // No need to check it again.
-
-    std::cout << HBD << " > " << Constants::HBD_UPPERBOUND << std::endl;
-
-    // (b) Hydrogen Bond donors
-    if (HBD > Constants::HBD_UPPERBOUND)
-    {
-        return false;
-    }
-
-    std::cout << HBA1 << " > " << Constants::HBA1_UPPERBOUND << std::endl;
-
-    // (c) Hydrogen Bond Acceptors
-    if (HBA1 > Constants::HBA1_UPPERBOUND)
-    {
-        return false;
-    }
-
-    std::cout << MolWt << " > " << Constants::MOLWT_UPPERBOUND << std::endl;
-
-    return MolWt > Constants::MOLWT_UPPERBOUND;
-}
-
 std::vector<EdgeAggregator*>* Molecule::Compose(const Molecule& that) const
 {
     std::vector<EdgeAggregator*>* newMolecules = new std::vector<EdgeAggregator*>();
@@ -673,80 +644,4 @@ void Molecule::WriteToOpenBabelFormat(std::string& str) const
 
     // Assign for return
     str = oss.str();
-}
-
-// *****************************************************************************
-
-
-//
-// Probability-related code for inclusion / exclusion of a molecule
-//
-bool Molecule::ProbabilisticExclusion(const Molecule* const mol)
-{
-    static bool init_rng = false;
-    static const gsl_rng_type* T;
-    static gsl_rng* rec;
-    if (!init_rng)
-    {
-        init_rng = true;
-
-        gsl_rng_env_setup();
-
-        T = gsl_rng_default;
-        rec = gsl_rng_alloc (T);
-    }
-
-    int numLinkers;
-    int numUniqueLinkers;
-    int numBricks;
-    int numUniqueBricks;
-
-    mol->GetNumLinkersBricks(numLinkers, numUniqueLinkers, numBricks, numUniqueBricks);
-
-    //
-    // Acquire all of the probabilities associate with:
-    //    (a) molecular weight
-    //    (b) # rigid fragments
-    //    (c) # linkers
-    //    (d) log of ratio (linkers : rigids)
-    //    (e) hydrogen binding donors
-    //    (f) hydrogen binding acceptor 1
-    //
-
-    //    (a) molecular weight
-    double mwProb = NormPdf(mol->getMolWt(), 428.366043, 91.124687);
-
-    //    (b) # rigid fragments
-    double numBrickProb = NormPdf(numBricks, 3.209722, 1.079512);
-
-    //    (c) # linkers
-    double numLinkerProb = LogisticPdf(numLinkers, 3.025175, 1.369960);
-
-    //    (d) log of ratio (linkers : rigids)
-    double log_ratio = log(((float)numLinkers) / ((float)numBricks));
-    double ratioProb = LogisticPdf(log_ratio, -0.084292, 0.460030);
-
-    //    (e) hydrogen binding donors
-    double hbdProb = LogisticPdf(mol->getHBD(), 1.937285, 0.762586);
-
-    //    (f) hydrogen binding acceptor 1
-    double hbaProb = LogisticPdf(mol->getHBA1(), 6.056996, 1.312437);
-
-    // Acquire the (cumulative) join probability distribution
-    double cumProb = mwProb * numBrickProb * numLinkerProb * ratioProb * hbdProb * hbaProb;
-
-    // Generate a random number between 0 and 1.
-    double randJointProb = 1;
-    for (int i = 0; i < 6; i++)
-    {
-        randJointProb *= gsl_rng_uniform(rec);
-    }
-
-// std::cerr << cumProb << " < " << randJointProb << " : " << (cumProb > randJointProb) << std::endl;
-
-    // return false;
-
-    return cumProb > randJointProb; 
-    
-    // gsl_rng_free(rec);
 }

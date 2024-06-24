@@ -54,7 +54,6 @@ DEPS = EdgeAggregator.h \
 	IdFactory.h \
 	Constants.h \
 	LikeMoleculesContainer.h \
-	MoleculeHashHypergraph.h \
 	MinimalMolecule.h \
 	SmiMinimalMolecule.h \
 	FixedSortedList.h \

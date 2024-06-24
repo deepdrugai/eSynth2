@@ -117,8 +117,6 @@ public:
 
   void WriteToOpenBabelFormat(std::string &) const;
 
-  static bool ProbabilisticExclusion(const Molecule *const);
-
   // CTA: 6/2024
   void printConstituentFragments() const
   {
@@ -201,8 +199,6 @@ private:
   static unsigned int LINKER_INDEX_START;
   static unsigned int LINKER_INDEX_END;
   static unsigned int FRAGMENT_END_INDEX;
-
-  static EdgeDatabase edges;
 };
 
 #endif

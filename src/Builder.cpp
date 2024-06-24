@@ -99,7 +99,6 @@ Builder::Builder(OBWriter* obWriter, std::ostream& out, OTFValidators* OTFvalida
 	ds(out),
 	overallMoleculeCount(0),
 	writer(obWriter),
-	excluded(0),
 	on_the_fly_validators(OTFvalidators)
 
 {
@@ -317,7 +316,7 @@ void Builder::SerialBuildHelper(unsigned level,
 		//
 		// Recursively process (level + 1)
 		//
-		SerialBuilderHelper(level + 1, processedMols);
+		SerialBuildHelper(level + 1, processedMols);
 	}
 }
 
@@ -375,12 +374,6 @@ void Builder::HandleNewMolecules(std::queue<Molecule*>& worklist,
 		delete newEdges;
 		return;
 	}
-
-	//
-	// Since all molecules we have deduced are of the same size (using a level-based
-	// construction), the size of the molecules are the same (equal num fragments)
-	//
-	unsigned level = (*newEdges->begin())->consequent->size();
 
 	//
 	// Add all molecules to the hypergraph

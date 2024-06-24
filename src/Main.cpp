@@ -116,17 +116,15 @@ int main(int argc, const char **argv)
 	OTFValidators validators(Options::VALIDATION_FILE);
 
 	// The main object that performs synthesis.
-	Instantiator instantiator(writer, cout, &validators);
+	Builder builder(writer, cout, &validators);
 
-    instantiator.SerialInstantiate(linkers, bricks);
+    builder.SerialBuild(linkers, bricks);
 
-	// With instantiation complete, output the TC-based analysis of generated
+	// With building complete, output the TC-based analysis of generated
 	// molecule similarity
 	validators.writeToFiles();
 
-	unsigned inc = instantiator.getIncluded();
-
-	std::cout << "Included (" << inc << ")" << std::endl;
+	std::cout << "Included (" << builder.getIncluded() << ")" << std::endl;
 
 	delete writer;
 
