@@ -338,7 +338,7 @@ void Builder::InitializeSynthesis(std::vector<Linker*>& linkers,
 		for (unsigned m2 = m1; m2 < baseMolecules.size(); m2++)
 		{
 		    // Allow combinations of fragments that allow a direct construction of a target molecule
-            if (!skipWithUniqueBuild(baseMolecules[m], m1, baseMolecules[m]->getNumOccurrencesForUniqueBuild()))
+            if (!skipWithUniqueBuild(baseMolecules[m1], m1, baseMolecules[m1]->getNumOccurrencesForUniqueBuild()))
             {
 				std::vector<EdgeAggregator*>* newEdges =
 					baseMolecules[m1]->Compose(*baseMolecules[m2]);
