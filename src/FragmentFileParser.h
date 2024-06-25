@@ -32,15 +32,21 @@ protected:
     std::vector<Linker *> _linkers;
     std::vector<std::string> _invalidFileNames;
     std::map<std::string, Constants::FRAGMENT_TYPE> _validFileNames;
+    std::map<std::string, Molecule*> _filenameMoleculeMap;
 
 public:
     std::vector<Brick *> getBricks() const { return _bricks; }
     std::vector<Linker *> getLinkers() const { return _linkers; }
     std::vector<std::string> getInvalidFileNames() const { return _invalidFileNames; }
     std::map<std::string, Constants::FRAGMENT_TYPE> getValidFiles() const { return _validFileNames; }
+    std::map<std::string, Molecule*> getFileMoleculeMap() const { return _filenameMoleculeMap; }
 
 public:
-    FragmentFileParser(const std::map<std::string, Constants::FRAGMENT_TYPE> &infiles) : _bricks{}, _linkers{}, _invalidFileNames{}, _validFileNames{}
+    FragmentFileParser(const std::map<std::string, Constants::FRAGMENT_TYPE> &infiles) : _bricks{},
+                                                                                         _linkers{},
+                                                                                         _invalidFileNames{},
+                                                                                         _validFileNames{},
+                                                                                         _filenameMoleculeMap{}
     {
         readInputFiles(infiles);
     }
@@ -53,13 +59,13 @@ protected:
     {
         for (auto const &infile : infiles)
         {
-            readMoleculeFile(infile.first.c_str(), infile.second);
+            readMoleculeFile(infile.first, infile.second);
         }
 
         return true;
     }
 
-    void readMoleculeFile(const char *fileName, Constants::FRAGMENT_TYPE fType)
+    void readMoleculeFile(const std::string& filename, Constants::FRAGMENT_TYPE fType)
     {
         //
         // Input parser conversion functionality for Open babel
@@ -72,7 +78,7 @@ protected:
         // and Our Data (Suffix)
         //
         std::ifstream infile;
-        infile.open(fileName);
+        infile.open(filename.c_str());
 
         std::string name = "UNKNOWN";
         std::string prefix = "";
@@ -87,7 +93,7 @@ protected:
             if (name == "UNKNOWN")
             {
                 name = "####   ";
-                name += fileName;
+                name += filename;
                 name += "    ####";
             }
 
@@ -103,7 +109,7 @@ protected:
 
             // Create and parse using Open Babel
             OpenBabel::OBMol *mol = new OpenBabel::OBMol();
-            // bool notAtEnd =
+
             obConversion.ReadString(mol, prefix);
 
             // Assign all needed data to the molecule (comment data)
@@ -113,19 +119,22 @@ protected:
 
             if (!local->isValid())
             {
-                _invalidFileNames.push_back(fileName);
+                _invalidFileNames.push_back(filename);
             }
             else
             {
                 // Adding the File Names that are parsed properly
                 if (fType != Constants::FRAGMENT_TYPE::ERROR)
-                    _validFileNames[fileName] = fType;
+                    _validFileNames[filename] = fType;
 
                 if (g_debug_output)
                     std::cout << "Local: " << *local << "|" << std::endl;
 
                 // Add to the linker or brick list as needed.
                 addMolecule(fType, local);
+
+                // Save to the <file-name, molecule map>
+                _filenameMoleculeMap[filename] = local;
             }
 
             // We don't keep a copy of the OpenBabel molecule anymore.
@@ -221,7 +230,6 @@ protected:
 
         case Constants::FRAGMENT_TYPE::FREE_ATOM:
             _linkers.push_back(static_cast<Linker *>(molecule));
-            // std::cerr << "Internal unexpected FREE_ATOM type." << std::endl;
             break;
 
         default:

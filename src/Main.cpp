@@ -16,6 +16,7 @@
  */
 
 #include <vector>
+#include <map>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -111,6 +112,8 @@ int main(int argc, const char **argv)
 		return 0;
 	}
 
+    if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD) reportBuild(inf.getFileMoleculeMap());
+
 	// Output object for the nodes of the hypergraph.
 	OBWriter* writer = new OBWriter();
 	writer->InitializeFile(Options::OUTPUT_SMI_FILE);
@@ -170,4 +173,18 @@ bool shortCircuitUniqueBuild(const std::vector<Brick*>& bricks,
 	    std::cerr << "Something went wrong with number of occurrences for unique build." << std::endl;
 
     return occurrences <= 1;
+}
+
+// When we only are interested in unique fragment construction,
+// we can short circuit all other operations.
+void reportBuild(const std::map<std::string, Molecule*>& file_mol_map)
+{
+	std::cout << "For a unique build, we will use the following fragments the specified number of times:"
+	          << std::endl;
+    for (std::map<std::string, Molecule*>::iterator it = file_mol_map.begin();
+	     it != file_mol_map.end();
+		 it++)
+	{
+        std::cout << it->first << "\t" << it->second << std::endl;
+	}
 }
