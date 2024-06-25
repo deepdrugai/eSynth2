@@ -72,11 +72,13 @@
 // Global set of linkers and bricks read from the input files.
 //
 
-void Cleanup(const std::vector<Linker *> &linkers,
-			 const std::vector<Brick *> &bricks);
+void Cleanup(const std::vector<Brick *> &bricks,
+             const std::vector<Linker *> &linkers);
 
 bool shortCircuitUniqueBuild(const std::vector<Brick*>& bricks,
                              const std::vector<Linker*>& linkers);
+
+void reportBuild(const std::map<std::string, Molecule*>& file_mol_map);
 
 int main(int argc, const char **argv)
 {
@@ -181,10 +183,10 @@ void reportBuild(const std::map<std::string, Molecule*>& file_mol_map)
 {
 	std::cout << "For a unique build, we will use the following fragments the specified number of times:"
 	          << std::endl;
-    for (std::map<std::string, Molecule*>::iterator it = file_mol_map.begin();
+    for (std::map<std::string, Molecule*>::const_iterator it = file_mol_map.begin();
 	     it != file_mol_map.end();
 		 it++)
 	{
-        std::cout << it->first << "\t" << it->second << std::endl;
+        std::cout << it->first << "\t" << it->second->getNumOccurrencesForUniqueBuild() << std::endl;
 	}
 }
