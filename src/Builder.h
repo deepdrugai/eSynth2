@@ -57,6 +57,8 @@ class Builder
 
     void SynthesizeWithMolecule(const Molecule* const currentMol, int level);
 
+    bool skipWithUniqueBuild(const Molecule* const mol, int frag_index, int allowed_frags) const;
+
     void InitOverallFilter();
     void InitLevelFilters();
 
