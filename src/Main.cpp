@@ -76,7 +76,7 @@ void Cleanup(const std::vector<Linker *> &linkers,
 			 const std::vector<Brick *> &bricks);
 
 bool shortCircuitUniqueBuild(const std::vector<Brick*>& bricks,
-                             const std::vector<Linker*>& linkers)
+                             const std::vector<Linker*>& linkers);
 
 int main(int argc, const char **argv)
 {

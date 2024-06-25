@@ -338,13 +338,12 @@ void Builder::InitializeSynthesis(std::vector<Linker*>& linkers,
 		for (unsigned m2 = m1; m2 < baseMolecules.size(); m2++)
 		{
 		    // Allow combinations of fragments that allow a direct construction of a target molecule
-            if (!skipWithUniqueBuild(baseMolecules[m1], m1, baseMolecules[m1]->getNumOccurrencesForUniqueBuild()))
-            {
-				std::vector<EdgeAggregator*>* newEdges =
-					baseMolecules[m1]->Compose(*baseMolecules[m2]);
+            if (m2 == m1 && skipWithUniqueBuild(baseMolecules[m1], m1, baseMolecules[m1]->getNumOccurrencesForUniqueBuild()))
+			    continue();
 
-				HandleNewMolecules(level_queues[2], filters[2], newEdges);
-            }
+            std::vector<EdgeAggregator*>* newEdges = baseMolecules[m1]->Compose(*baseMolecules[m2]);
+
+			HandleNewMolecules(level_queues[2], filters[2], newEdges);
 		}
 	}
 
