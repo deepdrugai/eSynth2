@@ -37,8 +37,6 @@ Linker::Linker(OpenBabel::OBMol *obmol, const std::string &name) : Molecule(obmo
     std::string commentStr = comment->GetData();
 
     parseAppendix(commentStr, obmol->NumAtoms());
-
-    // if (Options::OPENBABEL) OBWriter::ScrubAndConvertToSMIInternal(obmol, this->smi);
 }
 
 //
@@ -51,12 +49,6 @@ void Linker::parseAppendix(std::string &suffix, int numAtoms)
     // Use a string stream instead of manipulatiing the string
     std::stringstream suffStream(suffix);
     std::map<int, std::string> connectMap;
-
-    //
-    // @Magesh: Linker and Brick seek extensions in SDF format triggered by > <
-    // Make sure we check for eMolFrag v1.0 format(s)
-    // And check for v2.0 format(s)
-    //
 
     //
     // Read until we get "> <"
@@ -79,10 +71,8 @@ void Linker::parseAppendix(std::string &suffix, int numAtoms)
     int maxConnections = -1;
     std::string atomType;
     int count = 0;
-    //
-    // @Magesh: Check that the sum of all maxConnctions > 0
-    //
-    for (int x = 0; x < numAtoms; x++)
+
+    for (int a = 0; a < numAtoms; a++)
     {
         suffStream >> maxConnections;
         suffStream >> atomType;
@@ -92,16 +82,18 @@ void Linker::parseAppendix(std::string &suffix, int numAtoms)
             valid = false;
             return;
         }
-        if (x == numAtoms - 1)
-        {
-            if (count <= 0)
-            {
-                valid = false;
-                return;
-            }
-        }
 
         // A linker can link to any atom.
         this->atoms.push_back(new LinkerConnectableAtom(maxConnections, atomType, this));
     }
+
+    if (count <= 0)
+    {
+        valid = false;
+    }
+
+   // TODO
+   // If this is a 'merged' fragment, identify how many occurences
+   // are required for complete, unique reconstruction
+   // set : this->_numOccurencesForUnique
 }

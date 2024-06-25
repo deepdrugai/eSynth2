@@ -98,6 +98,7 @@ public:
         }
 
         fragmentFileEmitter("\nThe following fragment files conform to eSynth requirements and will be parsed:");
+        _fileMoleculeMap = fragmentParser.getFileMoleculeMap();
         return true;
     }
 
@@ -107,7 +108,11 @@ public:
     std::vector<Brick *> getBricks() const { return _bricks; }
     std::vector<Linker *> getLinkers() const { return _linkers; }
 
+    std::map<std::string, Molecule*> _fileMoleculeMap;
+
     std::map<std::string, Constants::FRAGMENT_TYPE> getFiles() const { return _filteredFiles; }
+    std::map<std::string, Molecule*> getFileMoleculeMap() const { return _fileMoleculeMap; }
+
 
 protected:
     int _argc;

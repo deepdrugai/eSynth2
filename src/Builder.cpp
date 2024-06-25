@@ -320,7 +320,6 @@ void Builder::SerialBuildHelper(unsigned level,
 	}
 }
 
-
 //
 // Creates the 2-molecules and initializes the fragments.
 //
@@ -331,12 +330,6 @@ void Builder::InitializeSynthesis(std::vector<Linker*>& linkers,
 
 	InitializeBaseMolecules(bricks, linkers, baseMolecules);
 
-	// // Add  all the base molecules to the hypergraph
-	// foreach_molecules(m_it, baseMolecules)
-	// {
-	// 	graph->addNode((*m_it)->ConstructMinimalMolecule(), 1);
-	// }
-
 	//
 	// Construct the set of 2-Molecules from the bricks and linkers.
 	//
@@ -344,11 +337,11 @@ void Builder::InitializeSynthesis(std::vector<Linker*>& linkers,
 	{
 		for (unsigned m2 = m1; m2 < baseMolecules.size(); m2++)
 		{
-			// Limit synthesis to unique fragments CTA: 6 / 2024
-	        if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD && m1 == m2) continue;
+		    // Allow combinations of fragments that allow a direct construction of a target molecule
+            if (m2 == m1 && skipWithUniqueBuild(baseMolecules[m1], m1, baseMolecules[m1]->getNumOccurrencesForUniqueBuild()))
+			    continue;
 
-			std::vector<EdgeAggregator*>* newEdges =
-				baseMolecules[m1]->Compose(*baseMolecules[m2]);
+            std::vector<EdgeAggregator*>* newEdges = baseMolecules[m1]->Compose(*baseMolecules[m2]);
 
 			HandleNewMolecules(level_queues[2], filters[2], newEdges);
 		}
@@ -521,16 +514,26 @@ void Builder::SynthesizeWithMolecule(const Molecule* const currentMol, int level
 	//
 	for (unsigned m = 0; m < baseMolecules.size(); m++)
 	{
-		// CTA: 6 / 2024
-		// Disallow multiple copies of the same fragment when specified by the user
-        if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD && 
-		    currentMol->hasFragment(baseMolecules[m]->getUniqueIndexID())) continue;
+		// Allow combinations of fragments that allow a direct construction of a target molecule
+        if (!skipWithUniqueBuild(currentMol, m, baseMolecules[m]->getNumOccurrencesForUniqueBuild()))
+		{
+			std::vector<EdgeAggregator*>* newEdges = currentMol->Compose(*baseMolecules[m]);
 
-        std::vector<EdgeAggregator*>* newEdges = currentMol->Compose(*baseMolecules[m]);
-
-		//
-		// Add the molecule to the next level queue; this depends on the level
-		//
-		HandleNewMolecules(level_queues[level + 1], filters[level + 1], newEdges);
+			//
+			// Add the molecule to the next level queue; this depends on the level
+			//
+			HandleNewMolecules(level_queues[level + 1], filters[level + 1], newEdges);
+		}
 	}
+}
+
+
+// CTA: 6 / 2024
+// If we have a 'merged' fragment, multiple copies of that fragment may be
+// used in a unique construction.
+bool Builder::skipWithUniqueBuild(const Molecule* const mol, int frag_index, int allowed_frags) const
+{
+    if (!Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD) return false;
+
+    return mol->numFragmentsOf(frag_index) >= allowed_frags;
 }
