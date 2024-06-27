@@ -40,6 +40,7 @@ void Options::init()
 
     // CTA: 6 / 2024
     Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD = Constants::DEFAULT_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD;
+    Options::MERGED_FRAGMENTS_TO_BUILD = Constants::DEFAULT_MERGED_FRAGMENTS_TO_BUILD;
 
     //
     // v1.0

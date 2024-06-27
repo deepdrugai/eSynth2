@@ -206,7 +206,8 @@ protected:
       suffStream.get();
     }
 
-    return numSimilarFragments;
+    // Return 0 unless we are told they are using merged fragments
+    return Options::MERGED_FRAGMENTS_TO_BUILD ? numSimilarFragments : 0;
   }
 
   //
