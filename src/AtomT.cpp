@@ -43,6 +43,8 @@ AtomT::AtomT(AtomEnumT type, int val, SpecialEnumT spec)
 
 AtomEnumT AtomT::convertToAtomEnum(const std::string& s)
 {
+   std::cout << "ConvertToAtom: " << s << std::endl;
+
     if (s == "C")       return ATOM_T_CARBON;
     else if (s == "Cl") return ATOM_T_CHLORINE;
     else if (s == "H")  return ATOM_T_HYDROGEN;
@@ -66,6 +68,8 @@ AtomEnumT AtomT::convertToAtomEnum(const std::string& s)
 
 SpecialEnumT AtomT::convertToSpecialEnum(const std::string& s)
 {
+    if (s.empty()) return SPECIAL_T_NONE;
+
     //
     // Force the contents to be lower case
     //

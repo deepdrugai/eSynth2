@@ -168,11 +168,12 @@ bool shortCircuitUniqueBuild(const std::vector<Brick*>& bricks,
 
     // Do we have just one fragment, but many occurrences?
 	unsigned short int occurrences = 0;
-	occurrences += !bricks.empty() ? 0 : bricks[0]->getNumOccurrencesForUniqueBuild();
+	occurrences += bricks.empty() ? 0 : bricks[0]->getNumOccurrencesForUniqueBuild();
 	occurrences += linkers.empty() ? 0 : linkers[0]->getNumOccurrencesForUniqueBuild();
 
     if (occurrences == 0)
-	    std::cerr << "Something went wrong with number of occurrences for unique build." << std::endl;
+	    std::cerr << "Something went wrong with number of occurrences for unique build;" << std::endl
+		          << "Number of occurrences is 0." << std::endl;
 
     return occurrences <= 1;
 }

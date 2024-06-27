@@ -309,6 +309,11 @@ private:
             Options::setOnlyUseUniqueFragments();
             _runtimeArgs[Constants::CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD] = "";
         }
+        else if (arg == Constants::CMD_MERGED_FRAGMENTS_TO_BUILD)
+        {
+            Options::setMergedFragmentsToBuild();
+            _runtimeArgs[Constants::CMD_MERGED_FRAGMENTS_TO_BUILD] = "";
+        }
 
         //
         // Paired arguments
