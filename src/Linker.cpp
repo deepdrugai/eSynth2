@@ -92,8 +92,10 @@ void Linker::parseAppendix(std::string &suffix, int numAtoms)
         valid = false;
     }
 
-   // TODO
-   // If this is a 'merged' fragment, identify how many occurences
-   // are required for complete, unique reconstruction
-   // set : this->_numOccurencesForUnique
+    // If this is a 'merged' fragment, identify how many occurences
+    // are required for complete, unique reconstruction
+    if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD)
+    {
+        _numOccurrencesForUnique = parseSimilarFragments(suffStream) + 1; // 1 for this fragment
+    }
 }
