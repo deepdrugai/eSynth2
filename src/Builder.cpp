@@ -432,6 +432,7 @@ void Builder::HandleNewMolecules(std::queue<Molecule*>& worklist,
 			// Write ONLY top-level molecules when reconstructing with unique builds
 			if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD)
             {
+				unsigned level = (*e_it)->consequent->size();
 				if (level == Options::USER_DEFINED_LEVEL_BOUND)
                     this->writer->OutputMoleculeAppendExternalSMI(smi);
 			}
