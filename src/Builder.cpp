@@ -429,7 +429,14 @@ void Builder::HandleNewMolecules(std::queue<Molecule*>& worklist,
 			// Validation does not require output
 			// validation on the fly still outputs the smi - 6/28/2022
 			//if (!VALIDATE) 
-			this->writer->OutputMoleculeAppendExternalSMI(smi);
+			// Write ONLY top-level molecules when reconstructing with unique builds
+			if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD)
+            {
+				if (level == Options::USER_DEFINED_LEVEL_BOUND)
+                    this->writer->OutputMoleculeAppendExternalSMI(smi);
+			}
+			// otherwise, write all the time
+			else this->writer->OutputMoleculeAppendExternalSMI(smi);
 
 			worklist.push((*e_it)->consequent);
 		}

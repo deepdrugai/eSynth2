@@ -119,10 +119,8 @@ void Brick::parseAppendix(std::string &suffix, int numAtoms)
         suffStream.get();
     }
 
-    // TODO
     // If this is a 'merged' fragment, identify how many occurences
     // are required for complete, unique reconstruction
-    // set : this->_numOccurencesForUnique
     if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD)
     {
         _numOccurrencesForUnique = parseSimilarFragments(suffStream) + 1; // 1 for this fragment
