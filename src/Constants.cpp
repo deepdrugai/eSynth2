@@ -37,11 +37,13 @@ const std::string Constants::CMD_ARG_USAGE = "usage";
 const std::string Constants::CMD_ARG_VERSION = "version";
 const std::string Constants::CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD = "unique-build";   // CTA: 6/2024
 const std::string Constants::CMD_MERGED_FRAGMENTS_TO_BUILD = "merged-fragments";   // CTA: 6/2024
+const std::string Constants::CMD_LOOSE_ATOMTYPE_GENERATION = "loose";   // CTA: 9/2024
 const std::vector<std::string> Constants::CMD_ARGS_SINGLETON = {Constants::CMD_ARG_FA_FILES,
                                                                 Constants::CMD_ARG_USAGE,
                                                                 Constants::CMD_ARG_VERSION,
                                                                 Constants::CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD,
-                                                                Constants::CMD_MERGED_FRAGMENTS_TO_BUILD};
+                                                                Constants::CMD_MERGED_FRAGMENTS_TO_BUILD,
+                                                                Constants::CMD_LOOSE_ATOMTYPE_GENERATION};
 
 // Paired (arg, arg-value) command-line arguments
 const std::string Constants::CMD_ARG_OUTPUT_FILE = "o";
@@ -64,6 +66,7 @@ const std::map<std::string, std::string> Constants::USAGE_MAP = {
     std::make_pair(Constants::CMD_ARG_VERSION, "\tVersion information"),
     std::make_pair(Constants::CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD, "\tConstructed molecules will not contain repeated fragments; all input fragments are considered unique"),
     std::make_pair(Constants::CMD_MERGED_FRAGMENTS_TO_BUILD, "\tWith unique builds, molecules may be repeated since input fragments have been minimized with a \'merging\' procedure"),
+    std::make_pair(Constants::CMD_LOOSE_ATOMTYPE_GENERATION, "\tGenerate molecules connecting atom types and nothing more specific (e.g., C.3 considers only C, not the 3)"),
 
     std::make_pair(Constants::CMD_ARG_OUTPUT_FILE, "<file>\tOutput file suffix"),
     std::make_pair(Constants::CMD_ARG_OUTPUT_DIR, "<path>\tPath to the desired output directory."),
@@ -109,5 +112,8 @@ double Constants::DEFAULT_TANIMOTO = 0.95;
 // CTA: 6 / 2024
 bool Constants::DEFAULT_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD = false;
 bool Constants::DEFAULT_MERGED_FRAGMENTS_TO_BUILD = false;
+
+// CTA: 9 / 2024
+bool Constants::DEFAULT_LOOSE_ATOMTYPE_GENERATION = false;
 
 unsigned Constants::MAX_SYNTH_LEVEL_BOUND = 20;
