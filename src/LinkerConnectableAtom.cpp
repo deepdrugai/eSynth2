@@ -81,7 +81,7 @@ bool LinkerConnectableAtom::CanConnectTo(const Atom& that) const
     if(!that.SpaceToConnect()) return false;
 
     // If the linkers have space and linkers can connect, indicate connection possible
-    if (Options::ALLOW_LINKER_LINKER_CONNECTIONS) return true;
+    if (that.IsLinkerAtom() && Options::ALLOW_LINKER_LINKER_CONNECTIONS) return true;
 
     //
     // Does that atom allow the connection to this?
