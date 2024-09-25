@@ -319,6 +319,11 @@ private:
             Options::setLooseGeneration();
             _runtimeArgs[Constants::CMD_LOOSE_ATOMTYPE_GENERATION] = "";
         }
+        else if (arg == Constants::CMD_ALLOW_LINKER_LINKER_CONNECTIONS)
+        {
+            Options::setAllowLinkerLinker();
+            _runtimeArgs[Constants::CMD_ALLOW_LINKER_LINKER_CONNECTIONS] = "";
+        }
 
         //
         // Paired arguments

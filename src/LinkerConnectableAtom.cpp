@@ -25,6 +25,8 @@
 #include "LinkerConnectableAtom.h"
 #include "BrickConnectableAtom.h"
 
+#include "Options.h"
+
 
 LinkerConnectableAtom::LinkerConnectableAtom(const LinkerConnectableAtom* const that)
 {
@@ -66,7 +68,10 @@ bool LinkerConnectableAtom::CanConnectTo(const Atom& that) const
     //
     // Disallow Linker-Linker connections.
     //
-    if (that.IsLinkerAtom()) return false;
+    if (!Options::ALLOW_LINKER_LINKER_CONNECTIONS)
+    {
+        if (that.IsLinkerAtom()) return false;
+    }
 
     //
     // Are there any allowable spots in the atoms to connect?
@@ -74,6 +79,9 @@ bool LinkerConnectableAtom::CanConnectTo(const Atom& that) const
     if(!this->SpaceToConnect()) return false;
 
     if(!that.SpaceToConnect()) return false;
+
+    // If the linkers have space and linkers can connect, indicate connection possible
+    if (Options::ALLOW_LINKER_LINKER_CONNECTIONS) return true;
 
     //
     // Does that atom allow the connection to this?
