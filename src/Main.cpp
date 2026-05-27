@@ -86,16 +86,55 @@ int main(int argc, const char **argv)
 	std::vector<Linker *> linkers{};
 	std::vector<Brick *> bricks{};
 
-	//
-	// The input facade:
-	// (1) identifies and set Options in the static Options class
-	// (2) Identifies legitimate, existing input fragment files
-	Options::init();
-	InputFacade inf{argc, argv};
+	OpenBabel::OBCommentData* cData = new OpenBabel::OBCommentData();
+	cData->SetAttribute("Comment");
+	cData->SetData(suffix);
+	mol->SetData(cData);
 
-	// If usage or versioning is requested.
-	if (!inf.parse())
-		return 0;
+	//
+	// Create this particular molecule type based on the name of the file.
+	//
+	if (mType == LINKER)
+	{
+		return new Linker(mol, name);
+	}
+	else if (mType == BRICK)
+	{
+		return new Brick(mol, name);
+	}
+
+	return 0;
+}
+
+void addMolecule(Constants::FRAGMENT_TYPE fType, Molecule* molecule)
+{
+    switch(fType)
+    {
+        case Constants::FRAGMENT_TYPE::BRICK:
+            bricks.push_back(static_cast<Brick*>(molecule));
+            break;
+
+        case Constants::FRAGMENT_TYPE::LINKER:
+            linkers.push_back(static_cast<Linker*>(molecule));
+            break;
+
+        case Constants::FRAGMENT_TYPE::FREE_ATOM:
+			      linkers.push_back(static_cast<Linker*>(molecule));
+            // std::cerr << "Internal unexpected FREE_ATOM type." << std::endl;
+            break;
+
+        default:
+        		std::cerr << "Unrecognized input fragment type." << std::endl;
+    }
+}
+
+void readMoleculeFile(const char* fileName, Constants::FRAGMENT_TYPE fType)
+{
+	//
+	// Input parser conversion functionality for Open babel
+	//
+	OpenBabel::OBConversion obConversion;
+	obConversion.SetInFormat("SDF");
 
 	// Remove log files from a previous run.
 	//
