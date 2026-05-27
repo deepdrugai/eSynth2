@@ -27,6 +27,7 @@
 void Options::init()
 {
     Options::SMI_ONLY = false;
+    Options::FA_FILES = false;
     Options::SERIAL = true;
     Options::THREADED = false;
 
@@ -40,7 +41,6 @@ void Options::init()
     Options::TANIMOTO = Constants::DEFAULT_TANIMOTO;
     Options::PROBABILITY_PRUNE_LEVEL_START = Constants::DEFAULT_PROBABILITY_PRUNE_LEVEL_START;
     Options::USER_DEFINED_LEVEL_BOUND = Constants::MAX_SYNTH_LEVEL_BOUND;
-
 
     //
     // v1.0
@@ -57,6 +57,7 @@ void Options::init()
 }
 
 bool Options::SMI_ONLY = false;
+bool Options::FA_FILES = false;
 bool Options::SERIAL = true;
 
 std::string Options::OUTPUT_FILE = Constants::DEFAULT_OUTPUT_FILE;
@@ -70,7 +71,6 @@ double Options::TANIMOTO = Constants::DEFAULT_TANIMOTO;
 unsigned Options::PROBABILITY_PRUNE_LEVEL_START = Constants::DEFAULT_PROBABILITY_PRUNE_LEVEL_START;
 unsigned Options::USER_DEFINED_LEVEL_BOUND = Constants::MAX_SYNTH_LEVEL_BOUND;
 
-
 //
 // v1.0
 //
@@ -82,5 +82,5 @@ bool Options::OPENBABEL = true;
 
 bool Options::USE_LIPINSKI = false;
 unsigned Options::OBGEN_THREAD_POOL_SIZE = 15;
-//unsigned Options::SMI_LEVEL_BOUND = 3;
+// unsigned Options::SMI_LEVEL_BOUND = 3;
 double Options::SA_THRESHOLD = 5.0;
