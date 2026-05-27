@@ -65,6 +65,7 @@ struct Options
     static bool ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD; // CTA: 6 / 2024
     static bool MERGED_FRAGMENTS_TO_BUILD; // CTA: 6 / 2024
     static bool LOOSE_ATOMTYPE_GENERATION; // CTA: 9 / 2024
+    static bool ALLOW_LINKER_LINKER_CONNECTIONS; // CTA: 9 / 2024
 
     // FA FILE for Free Atom Files
     static void setFreeAtomFileFlag() { FA_FILES = true; }
@@ -72,6 +73,7 @@ struct Options
     static void setOnlyUseUniqueFragments() { ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD = true; } // CTA: 6 / 2024
     static void setMergedFragmentsToBuild() { MERGED_FRAGMENTS_TO_BUILD = true; } // CTA: 6 / 2024
     static void setLooseGeneration() { LOOSE_ATOMTYPE_GENERATION = true; } // CTA: 9 / 2024
+    static void setAllowLinkerLinker() { ALLOW_LINKER_LINKER_CONNECTIONS = true; } // CTA: 9 / 2024
 
     static void setOutputFile(const std::string &name) { OUTPUT_FILE = name; }
     static void setOutputDirectory(const std::string &name) { OUTPUT_DIRECTORY = name; }

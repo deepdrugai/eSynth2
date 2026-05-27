@@ -44,7 +44,8 @@ public:
     static const std::string CMD_ARG_SERIAL;
     static const std::string CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD;  // CTA: 6/2024
     static const std::string CMD_MERGED_FRAGMENTS_TO_BUILD;
-    static const std::string CMD_LOOSE_ATOMTYPE_GENERATION; // CTA: 9 / 2024 
+    static const std::string CMD_LOOSE_ATOMTYPE_GENERATION;       // CTA: 9 / 2024 
+    static const std::string CMD_ALLOW_LINKER_LINKER_CONNECTIONS; // CTA: 9 / 2024 
     static const std::vector<std::string> CMD_ARGS_SINGLETON;
 
     // Paired (arg, arg-value) command-line arguments
@@ -102,6 +103,7 @@ public:
 
     // CTA: 9 / 2024
     static bool DEFAULT_LOOSE_ATOMTYPE_GENERATION;
+    static bool ALLOW_LINKER_LINKER_CONNECTIONS;
 
     static unsigned MAX_SYNTH_LEVEL_BOUND;
 };
