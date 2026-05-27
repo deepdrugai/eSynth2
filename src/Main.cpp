@@ -79,84 +79,34 @@ int main(int argc, const char **argv)
 	std::vector<Linker *> linkers{};
 	std::vector<Brick *> bricks{};
 
-	OpenBabel::OBCommentData* cData = new OpenBabel::OBCommentData();
-	cData->SetAttribute("Comment");
-	cData->SetData(suffix);
-	mol->SetData(cData);
+	Options::init();
+	InputFacade inf{argc, argv};
 
-	//
-	// Create this particular molecule type based on the name of the file.
-	//
-	if (mType == LINKER)
-	{
-		return new Linker(mol, name);
-	}
-	else if (mType == BRICK)
-	{
-		return new Brick(mol, name);
-	}
-
-	return 0;
-}
-
-void addMolecule(Constants::FRAGMENT_TYPE fType, Molecule* molecule)
-{
-    switch(fType)
-    {
-        case Constants::FRAGMENT_TYPE::BRICK:
-            bricks.push_back(static_cast<Brick*>(molecule));
-            break;
-
-        case Constants::FRAGMENT_TYPE::LINKER:
-            linkers.push_back(static_cast<Linker*>(molecule));
-            break;
-
-        case Constants::FRAGMENT_TYPE::FREE_ATOM:
-			      linkers.push_back(static_cast<Linker*>(molecule));
-            // std::cerr << "Internal unexpected FREE_ATOM type." << std::endl;
-            break;
-
-        default:
-        		std::cerr << "Unrecognized input fragment type." << std::endl;
-    }
-}
-
-void readMoleculeFile(const char* fileName, Constants::FRAGMENT_TYPE fType)
-{
-	//
-	// Input parser conversion functionality for Open babel
-	//
-	OpenBabel::OBConversion obConversion;
-	obConversion.SetInFormat("SDF");
+	if (!inf.parse())
+		return 0;
 
 	bricks = inf.getBricks();
 	linkers = inf.getLinkers();
 
-    // Is the input one fragment with one occurrence
-    if (shortCircuitUniqueBuild(bricks, linkers))
+	if (shortCircuitUniqueBuild(bricks, linkers))
 	{
-        std::cerr << "Single fragment specified with 1 occurrence;" << std::endl
+		std::cerr << "Single fragment specified with 1 occurrence;" << std::endl
 		          << "unique fragment-based construction will not execute."
-	              << std::endl;
+		          << std::endl;
 		return 0;
 	}
 
-    if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD) reportBuild(inf.getFileMoleculeMap());
+	if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD)
+		reportBuild(inf.getFileMoleculeMap());
 
-	// Output object for the nodes of the hypergraph.
 	OBWriter* writer = new OBWriter();
 	writer->InitializeFile(Options::OUTPUT_SMI_FILE);
 
-	// Create On_the_Fly_Validators
 	OTFValidators validators(Options::VALIDATION_FILE);
+	Builder builder(writer, std::cout, &validators);
 
-	// The main object that performs synthesis.
-	Builder builder(writer, cout, &validators);
+	builder.SerialBuild(linkers, bricks);
 
-    builder.SerialBuild(linkers, bricks);
-
-	// With building complete, output the TC-based analysis of generated
-	// molecule similarity
 	validators.writeToFiles();
 
 	std::cout << "Included (" << builder.getIncluded() << ")" << std::endl;
