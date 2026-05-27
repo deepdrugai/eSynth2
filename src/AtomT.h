@@ -33,7 +33,9 @@ const unsigned ATOM_T_FLUORINE   = 7;
 const unsigned ATOM_T_BROMINE    = 8;
 const unsigned ATOM_T_BORON      = 9;
 const unsigned ATOM_T_IODINE     = 10;
-const unsigned ATOM_T_UNKNOWN    = 11;
+const unsigned ATOM_T_SILICON    = 11;
+const unsigned ATOM_T_ARSENIC    = 12;
+const unsigned ATOM_T_UNKNOWN    = 13;
 
 
 const unsigned SPECIAL_T_AM       = 0;

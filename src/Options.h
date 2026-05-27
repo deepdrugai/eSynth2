@@ -39,28 +39,17 @@ struct Options
     // v1.0 Constants
     //
     static std::string writerPath;
-    static std::string shmPath;
 
     std::string outFile;
 
-    static bool THREADED;
-
     static bool OPENBABEL;
-    static bool USE_LIPINSKI;
-    // static unsigned SMI_LEVEL_BOUND;
-    static unsigned int OBGEN_THREAD_POOL_SIZE;
-
     static double SA_THRESHOLD;
-    // static std::string PYTHON_MODULE_NAME;
-    // static std::string PYTHON_FUNCTION_NAME;
 
     //
     // v2.0 Constants
     //
     static void init(); // constructor-like funtion for default initializations
-    static bool SMI_ONLY;
     static bool FA_FILES;
-    static bool SERIAL;
 
     static std::string OUTPUT_FILE;
     static std::string OUTPUT_SMI_FILE;
@@ -72,17 +61,13 @@ struct Options
     static std::string VALIDATION_FILE;
 
     static double TANIMOTO;
-    static unsigned PROBABILITY_PRUNE_LEVEL_START;
     static unsigned USER_DEFINED_LEVEL_BOUND;
-
-    // SMILES format for synthesized molecules
-    static void setSMILESOutputOnly() { SMI_ONLY = true; }
+    static bool ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD; // CTA: 6 / 2024
 
     // FA FILE for Free Atom Files
     static void setFreeAtomFileFlag() { FA_FILES = true; }
 
-    // Non-threaded execution
-    static void setSerialExecution() { SERIAL = true; }
+    static void setOnlyUseUniqueFragments() { ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD = true; } // CTA: 6 / 2024
 
     static void setOutputFile(const std::string &name) { OUTPUT_FILE = name; }
     static void setOutputDirectory(const std::string &name) { OUTPUT_DIRECTORY = name; }
@@ -104,7 +89,7 @@ struct Options
     }
 
     /*
-     * Set the probability prune level, if it is valid.
+     * Set the upper bound for number of fragments to combine.
      */
     static void setLevelBound(unsigned level)
     {
@@ -112,17 +97,6 @@ struct Options
             return;
 
         USER_DEFINED_LEVEL_BOUND = level;
-    }
-
-    /*
-     * Set the probability prune level, if it is valid.
-     */
-    static void setProbLevel(unsigned level)
-    {
-        if (level > Constants::MAX_SYNTH_LEVEL_BOUND)
-            return;
-
-        PROBABILITY_PRUNE_LEVEL_START = level;
     }
 };
 

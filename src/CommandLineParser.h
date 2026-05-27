@@ -31,9 +31,6 @@
 #include "Utilities.h"
 #include "Constants.h"
 
-/*
- * Singleton Options object
- */
 class CommandLineParser
 {
 protected:
@@ -292,7 +289,6 @@ private:
         _runtimeArgs[Constants::CMD_ARG_OUTPUT_DIR] = Options::OUTPUT_DIRECTORY;
         _runtimeArgs[Constants::CMD_ARG_TANIMOTO_COEFF] = std::to_string(Options::TANIMOTO);
         _runtimeArgs[Constants::CMD_ARG_LEVEL_BOUND] = std::to_string(Options::USER_DEFINED_LEVEL_BOUND);
-        _runtimeArgs[Constants::CMD_ARG_PROB_LEVEL] = std::to_string(Options::PROBABILITY_PRUNE_LEVEL_START);
 
         return true;
     }
@@ -303,20 +299,15 @@ private:
         //
         // Singleton arguments
         //
-        if (arg == Constants::CMD_ARG_SMI_ONLY)
-        {
-            Options::setSMILESOutputOnly();
-            _runtimeArgs[Constants::CMD_ARG_SMI_ONLY] = "";
-        }
-        else if (arg == Constants::CMD_ARG_FA_FILES)
+        if (arg == Constants::CMD_ARG_FA_FILES)
         {
             Options::setFreeAtomFileFlag();
             _runtimeArgs[Constants::CMD_ARG_FA_FILES] = "";
         }
-        else if (arg == Constants::CMD_ARG_SERIAL)
+        else if (arg == Constants::CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD)
         {
-            Options::setSerialExecution();
-            _runtimeArgs[Constants::CMD_ARG_SERIAL] = "";
+            Options::setOnlyUseUniqueFragments();
+            _runtimeArgs[Constants::CMD_ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD] = "";
         }
 
         //
@@ -390,28 +381,6 @@ private:
         else if (arg == Constants::CMD_ARG_LEVEL_BOUND)
         {
             // This has already been handled above
-        }
-
-        else if (arg == Constants::CMD_ARG_PROB_LEVEL)
-        {
-            unsigned level = atoi(value.c_str());
-
-            if (level <= 0)
-            {
-                std::cerr << "Default level bound must be zero; not "
-                          << value << std::endl;
-            }
-
-            // In the case that the input value fails to be read, 0.0 is returned
-            if (level > Constants::MAX_SYNTH_LEVEL_BOUND)
-            {
-                std::cerr << "Level bound must be less than "
-                          << Constants::MAX_SYNTH_LEVEL_BOUND
-                          << " not " << level << std::endl;
-            }
-
-            // the set function will default to 20 for erroneous values
-            Options::setProbLevel(level);
         }
     }
 

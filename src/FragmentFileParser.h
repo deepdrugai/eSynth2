@@ -18,6 +18,8 @@ namespace fs = std::experimental::filesystem;
 //#include <filesystem>
 // namespace fs = std::filesystem;
 
+#include <openbabel/obconversion.h>
+
 #include "Utilities.h"
 #include "Constants.h"
 
@@ -115,25 +117,6 @@ protected:
             }
             else
             {
-
-                // calculate the molecular weight, H donors and acceptors and the plogp
-                // local->openBabelPredictLipinski();
-
-                // add to logfile
-                if (Molecule::isOpenBabelLipinskiCompliant(*mol))
-                {
-                    std::ofstream logfile("synth_log_initial_fragments_logfile.txt",
-                                          std::ofstream::out | std::ofstream::app); // append
-                    logfile << fileName << "\nMolWt = " << local->getMolWt() << "\n";
-                    logfile << "HBD = " << local->getHBD() << "\n";
-                    logfile << "HBA1 = " << local->getHBA1() << "\n";
-                    logfile << "logP = " << local->getlogP() << "\n";
-                    logfile << std::endl;
-                    logfile.close();
-                }
-                else
-                    std::cerr << "Main: predictLipinski failed somehow!" << endl;
-
                 // Adding the File Names that are parsed properly
                 if (fType != Constants::FRAGMENT_TYPE::ERROR)
                     _validFileNames[fileName] = fType;

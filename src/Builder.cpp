@@ -20,7 +20,6 @@
 #include <iostream>
 #include <memory>
 #include <time.h>
-#include <pthread.h>
 #include <map>
 #include <algorithm>
 
@@ -30,11 +29,10 @@
 #include "Linker.h"
 
 
-#include "MoleculeHashHypergraph.h"
 #include "EdgeAggregator.h"
 
 
-#include "Instantiator.h"
+#include "Builder.h"
 #include "OBWriter.h"
 #include "Utilities.h"
 #include "IdFactory.h"
@@ -47,7 +45,7 @@
 
 
 // 0 indicates we let the queue size be limitless.
-const unsigned Instantiator::MAX_QUEUE_SIZES[22] = { 0,   // Level 0
+const unsigned Builder::MAX_QUEUE_SIZES[22] = { 0,   // Level 0
 0,   //       1
 300, //       2
 10,  //       3
@@ -72,7 +70,7 @@ const unsigned Instantiator::MAX_QUEUE_SIZES[22] = { 0,   // Level 0
 };
 
 // The anticipated sizes of the level (at max). 0 indicates we are not using a Bloom filter.
-const unsigned long long Instantiator::LEVEL_SIZES[22] = { 0,       // Level 0
+const unsigned long long Builder::LEVEL_SIZES[22] = { 0,       // Level 0
 0,       //       1
 500,     //       2
 10000,   //       3
@@ -97,53 +95,23 @@ const unsigned long long Instantiator::LEVEL_SIZES[22] = { 0,       // Level 0
 };
 
 
-
-Instantiator::Instantiator(OBWriter* obWriter, std::ostream& out, OTFValidators* OTFvalidators): 
+Builder::Builder(OBWriter* obWriter, std::ostream& out, OTFValidators* OTFvalidators): 
 	ds(out),
 	overallMoleculeCount(0),
 	writer(obWriter),
-	excluded(0),
 	on_the_fly_validators(OTFvalidators)
 
 {
-	graph = new MoleculeHashHypergraph(Options::USER_DEFINED_LEVEL_BOUND + 1);
-
-	// The hypergraph lock
-	pthread_mutex_init(&graph_lock, NULL);
-
-	// The threads and locks for the producer-consumer containers.
 	level_queues = new std::queue<Molecule*>[Options::USER_DEFINED_LEVEL_BOUND + 1];
 	moleculeLevelCount = new int[Options::USER_DEFINED_LEVEL_BOUND + 1];
 
-	// Create the bloom filters
-
-	if (Options::THREADED)
-	{
-		queue_locks = new pthread_mutex_t[Options::USER_DEFINED_LEVEL_BOUND + 1];
-		queue_threads = new pthread_t[Options::USER_DEFINED_LEVEL_BOUND + 1];
-		completed_level = new bool[Options::USER_DEFINED_LEVEL_BOUND + 1];
-		arg_pointer = new Instantiator_ProcessLevel_Thread_Args[Options::USER_DEFINED_LEVEL_BOUND + 1];
-	}
 	for (unsigned m = 1; m <= Options::USER_DEFINED_LEVEL_BOUND; m++)
 	{
-		if (Options::THREADED)
-		{
-			// Initialize those container locks.
-			pthread_mutex_init(&queue_locks[m], NULL);
-
-			// Initialize the fact that we have not computed this level. 
-			completed_level[m] = false;
-
-			// set up arg structs
-			arg_pointer[m].m = m;
-			arg_pointer[m].graph = graph;
-			arg_pointer[m].this_pointer = this;
-		}
-
 		// We have create 0 molecules at this level, thus far.
 		moleculeLevelCount[m] = 0;
 	}
 
+	// Create the bloom filters
 	InitOverallFilter();
 	InitLevelFilters();
 }
@@ -151,7 +119,7 @@ Instantiator::Instantiator(OBWriter* obWriter, std::ostream& out, OTFValidators*
 //
 // Initialize the Bloom filter among all levels
 //
-void Instantiator::InitOverallFilter()
+void Builder::InitOverallFilter()
 {
 	bloom_parameters parameters;
 
@@ -186,7 +154,7 @@ void Instantiator::InitOverallFilter()
 //
 // Initialize the Bloom filter at each level
 //
-void Instantiator::InitLevelFilters()
+void Builder::InitLevelFilters()
 {
 	bloom_parameters parameters;
 
@@ -222,26 +190,11 @@ void Instantiator::InitLevelFilters()
 	}
 }
 
-
-
-//
-// Add the hypernode to the hypergraph; success or failure is returned.
-//
-std::pair<unsigned int, bool> Instantiator::AddNode(MinimalMolecule* const mol, unsigned int sz)
-{
-	// We don't need to lock around the hypergraph since additions are level-based.
-	// And each thread works on its own level.
-
-	std::pair<int, bool> ret = graph->addNode(mol, sz);
-
-	return ret;
-}
-
 //
 // We first construct the base case of 2-Molecules.
 // Then, we inductively start constructing 3-Molecules, 4-Molecules, etc.
 //
-MoleculeHashHypergraph* Instantiator::SerialInstantiate(std::vector<Linker*>& linkers,
+void Builder::SerialBuild(std::vector<Linker*>& linkers,
 	std::vector<Brick*>& bricks)
 {
 	//
@@ -260,7 +213,7 @@ MoleculeHashHypergraph* Instantiator::SerialInstantiate(std::vector<Linker*>& li
 	unsigned molsProcessed = 0;
 	while (!level_queues[2].empty())
 	{
-		SerialInstantiateHelper(2, molsProcessed);
+		SerialBuildHelper(2, molsProcessed);
 	}
 
 	//
@@ -268,9 +221,6 @@ MoleculeHashHypergraph* Instantiator::SerialInstantiate(std::vector<Linker*>& li
 	//
 	for (unsigned m = 2; m <= Options::USER_DEFINED_LEVEL_BOUND; m++)
 	{
-		// Kill this level in the hypergraph
-		graph->killLevel(m);
-
 		// The Bloom Filter is no longer needed at this level.
 		delete filters[m];
 		filters[m] = 0;
@@ -283,10 +233,7 @@ MoleculeHashHypergraph* Instantiator::SerialInstantiate(std::vector<Linker*>& li
 	}
 
 	// Tell the output engine we have completed synthesis.
-	// This function then spins until the thread pool is complete.
 	this->writer->IndicateSynthesisComplete();
-
-	return graph;
 }
 
 //
@@ -296,7 +243,7 @@ MoleculeHashHypergraph* Instantiator::SerialInstantiate(std::vector<Linker*>& li
 // (level + 1)
 // ...inductive completion. 
 //
-void Instantiator::SerialInstantiateHelper(unsigned level,
+void Builder::SerialBuildHelper(unsigned level,
 	unsigned& processedMols)
 {
 	std::cerr << "Processing level " << level << std::endl;
@@ -369,7 +316,7 @@ void Instantiator::SerialInstantiateHelper(unsigned level,
 		//
 		// Recursively process (level + 1)
 		//
-		SerialInstantiateHelper(level + 1, processedMols);
+		SerialBuildHelper(level + 1, processedMols);
 	}
 }
 
@@ -377,18 +324,18 @@ void Instantiator::SerialInstantiateHelper(unsigned level,
 //
 // Creates the 2-molecules and initializes the fragments.
 //
-void Instantiator::InitializeSynthesis(std::vector<Linker*>& linkers,
+void Builder::InitializeSynthesis(std::vector<Linker*>& linkers,
 	std::vector<Brick*>& bricks)
 {
 	this->writer->IndicateSynthesisStarted();
 
 	InitializeBaseMolecules(bricks, linkers, baseMolecules);
 
-	// Add  all the base molecules to the hypergraph
-	foreach_molecules(m_it, baseMolecules)
-	{
-		graph->addNode((*m_it)->ConstructMinimalMolecule(), 1);
-	}
+	// // Add  all the base molecules to the hypergraph
+	// foreach_molecules(m_it, baseMolecules)
+	// {
+	// 	graph->addNode((*m_it)->ConstructMinimalMolecule(), 1);
+	// }
 
 	//
 	// Construct the set of 2-Molecules from the bricks and linkers.
@@ -397,10 +344,13 @@ void Instantiator::InitializeSynthesis(std::vector<Linker*>& linkers,
 	{
 		for (unsigned m2 = m1; m2 < baseMolecules.size(); m2++)
 		{
+			// Limit synthesis to unique fragments CTA: 6 / 2024
+	        if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD && m1 == m2) continue;
+
 			std::vector<EdgeAggregator*>* newEdges =
 				baseMolecules[m1]->Compose(*baseMolecules[m2]);
 
-			HandleNewMolecules(level_queues[2], &queue_locks[2], filters[2], newEdges);
+			HandleNewMolecules(level_queues[2], filters[2], newEdges);
 		}
 	}
 
@@ -414,8 +364,7 @@ void Instantiator::InitializeSynthesis(std::vector<Linker*>& linkers,
 //
 // Forward Instantiation does not permit any cycles in the resultant graph.
 //
-void Instantiator::HandleNewMolecules(std::queue<Molecule*>& worklist,
-	pthread_mutex_t* worklist_lock,
+void Builder::HandleNewMolecules(std::queue<Molecule*>& worklist,
 	bloom_filter* const levelFilter,
 	std::vector<EdgeAggregator*>* newEdges)
 {
@@ -427,24 +376,14 @@ void Instantiator::HandleNewMolecules(std::queue<Molecule*>& worklist,
 	}
 
 	//
-	// Since all molecules we have deduced are of the same size (using a level-based
-	// construction), the size of the molecules are the same (equal num fragments)
-	//
-	unsigned level = (*newEdges->begin())->consequent->size();
-
-	//
 	// Add all molecules to the hypergraph
 	//
 	for (std::vector<EdgeAggregator*>::const_iterator e_it = newEdges->begin();
 		e_it != newEdges->end();
 		e_it++)
 	{
-		// Did we generate this molecule previously? Or probability removal?
+		// Did we generate this molecule previously?
 		bool killMolecule = false;
-
-		// CHANGE: Get the sdf of this moelcule - 6/27/2022
-		// CHNAGE: no longer needed for constructing OBMol 
-		// std::string sdf = (*e_it)->consequent->ConstructSDF();
 
 		// SMI for this molecule
 		std::string smi = (*e_it)->consequent->ConstructSMI();
@@ -452,16 +391,9 @@ void Instantiator::HandleNewMolecules(std::queue<Molecule*>& worklist,
 		// Validate 
 		if (Options::OTF_VALIDATE && on_the_fly_validators) on_the_fly_validators->validate(smi);
 
-		// Add the consequent node to the graph directly.
-		// std::pair<unsigned int, bool> addedResult = AddNode(minMol, level);
-
-		// If we are validating the original molecule, check
-		//if (VALIDATE) Validate(validationMol);
-
 		//
 		// Check the memory-less dictionary for this level
 		//
-		static unsigned prob_excluded = 0;
 		static unsigned overall_filtered = 0;
 		if (levelFilter->contains(smi))
 		{
@@ -477,23 +409,6 @@ void Instantiator::HandleNewMolecules(std::queue<Molecule*>& worklist,
 			if (++overall_filtered % 100 == 0)
 			{
 				std::cerr << "Overall filtered: " << overall_filtered << std::endl;
-			}
-		}
-		//
-		// Do we prune with probabilities?
-		//
-		else if (level >= Options::PROBABILITY_PRUNE_LEVEL_START)
-		{
-			if (Molecule::ProbabilisticExclusion((*e_it)->consequent))
-			{
-				killMolecule = true;
-
-				if (++prob_excluded % 1000 == 0)
-				{
-					std::cerr << "Probability excluding molecule: " << prob_excluded
-						<< " (" << 100 * float(prob_excluded) / (overallMoleculeCount + prob_excluded)
-						<< "\%)" << std::endl;
-				}
 			}
 		}
 
@@ -523,9 +438,7 @@ void Instantiator::HandleNewMolecules(std::queue<Molecule*>& worklist,
 			//if (!VALIDATE) 
 			this->writer->OutputMoleculeAppendExternalSMI(smi);
 
-			if (Options::THREADED) pthread_mutex_lock(worklist_lock);
 			worklist.push((*e_it)->consequent);
-			if (Options::THREADED) pthread_mutex_unlock(worklist_lock);
 		}
 
 		// We are done with this edge structure; delete it.
@@ -540,7 +453,7 @@ void Instantiator::HandleNewMolecules(std::queue<Molecule*>& worklist,
 // On the fly validation of molecules synthesized;
 // Exits if the validation molecule was generated.
 //
-void Instantiator::Validate(const std::string& syn_smi) const
+void Builder::Validate(const std::string& syn_smi) const
 {
 	// Convert
 	if (syn_smi != validation_smi) return;
@@ -558,7 +471,7 @@ void Instantiator::Validate(const std::string& syn_smi) const
 // Initialize the linkers and bricks as required; the baseMolecules list will then be
 // used as a reference container throughout synthesis.
 //
-void Instantiator::InitializeBaseMolecules(const std::vector<Brick*>& bricks,
+void Builder::InitializeBaseMolecules(const std::vector<Brick*>& bricks,
 	const std::vector<Linker*>& linkers,
 	std::vector<Molecule*>& baseMolecules)
 {
@@ -599,205 +512,25 @@ void Instantiator::InitializeBaseMolecules(const std::vector<Brick*>& bricks,
 // Takes a single molecule and composes it with the base molecules to create the next level
 // molecule.
 //
-void Instantiator::SynthesizeWithMolecule(const Molecule* const currentMol, int level)
+void Builder::SynthesizeWithMolecule(const Molecule* const currentMol, int level)
 {
+	// CTA: 6 / 2024 currentMol->printConstituentFragments();
+
 	//
 	// Compose with all of the base molecules
 	//
 	for (unsigned m = 0; m < baseMolecules.size(); m++)
 	{
-		std::vector<EdgeAggregator*>* newEdges = currentMol->Compose(*baseMolecules[m]);
+		// CTA: 6 / 2024
+		// Disallow multiple copies of the same fragment when specified by the user
+        if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD && 
+		    currentMol->hasFragment(baseMolecules[m]->getUniqueIndexID())) continue;
+
+        std::vector<EdgeAggregator*>* newEdges = currentMol->Compose(*baseMolecules[m]);
 
 		//
 		// Add the molecule to the next level queue; this depends on the level
 		//
-		HandleNewMolecules(level_queues[level + 1], 0, filters[level + 1], newEdges);
+		HandleNewMolecules(level_queues[level + 1], filters[level + 1], newEdges);
 	}
-}
-
-//
-//void Instantiator::ProcessLevel(std::vector<Molecule*>& baseMols,
-//                                std::queue<Molecule*>& inSet,
-//                                std::queue<Molecule*>& outSet,
-//                                pthread_mutex_t& in_lock,
-//                                pthread_mutex_t& out_lock,
-//                                bool* previousLevelComplete,
-//                                bool* thisLevelComplete)
-//
-void* ProcessLevel(void* ptr_void)
-{
-	//  unpacking arguments structure into mutiple local pointers
-	Instantiator_ProcessLevel_Thread_Args * args = (Instantiator_ProcessLevel_Thread_Args *)ptr_void;
-	int m = args->m; // level number
-	Instantiator * This = (Instantiator *)args->this_pointer; // this pointer of calling class (Instantiator)
-
-															  //
-															  //  recast variables for local use (from the spawned thread record we were passed)
-															  //
-															  //std::vector<Molecule*> *baseMols = &(This->baseMolecules);
-	std::queue<Molecule*> *inSet = &(This->level_queues[m - 1]);
-	//std::queue<Molecule*> *outSet = &(This->level_queues[m]);
-	pthread_mutex_t* in_lock = &(This->queue_locks[m - 1]);
-	//pthread_mutex_t* out_lock = &(This->queue_locks[m]);
-	bool* previousLevelComplete = &(This->completed_level[m - 1]);
-	bool* thisLevelComplete = &(This->completed_level[m]);
-
-	//
-	// A structure for sleeping for 0.1 seconds
-	//
-	struct timespec sleepTime;
-	struct timespec remTime;     // Remaining time
-	sleepTime.tv_sec = 0;
-	sleepTime.tv_nsec = 100000000L; // 0.1 seconds
-
-									//
-									// Keep consuming molecules as long as the previous level is incomplete or this
-									// level queue contains molecules to process.
-									//
-	while (!(*previousLevelComplete) || !inSet->empty())
-	{
-		//
-		// Nothing to process, currently, but the level is incomplete.
-		//
-		if (inSet->empty())
-		{
-			nanosleep(&sleepTime, &remTime);
-		}
-		else
-		{
-			//
-			// If a greater level has elements in their queue, pause this thread for
-			// a while.
-			// Anything over level 13 should fly through.
-			//
-			bool process = false;
-
-			if (m >= 13) process = true;
-			else if (This->level_queues[m].size() < Instantiator::MAX_QUEUE_SIZES[m])
-			{
-				process = true;
-			}
-			//
-			// Process a molecule in the queue
-			//
-			if (!process)
-			{
-				sleep(5);
-			}
-			else if (process)
-			{
-				//
-				// Acquire a molecule to process.
-				//
-				pthread_mutex_lock(in_lock);
-				Molecule* molToProcess = inSet->front();
-				inSet->pop();
-				pthread_mutex_unlock(in_lock);
-				This->moleculeLevelCount[m - 1]++;
-				This->overallMoleculeCount++;
-
-				if (This->overallMoleculeCount % 500 == 0 || m <= 6)
-				{
-					std::cout << "Took molecule "
-						<< This->moleculeLevelCount[m - 1]
-						<< " off level " << m - 1 << "; queue contains ("
-						<< inSet->size() << "); Overall Count: "
-						<< This->overallMoleculeCount << std::endl;
-				}
-
-				//
-				// Process the molecule by composing it with all the base molecules.
-				//
-				int level = m - 1;
-				for (unsigned mol = 0; mol < Molecule::baseMolecules.size(); mol++)
-				{
-					std::vector<EdgeAggregator*>* newEdges =
-						molToProcess->Compose(*Molecule::baseMolecules[mol]);
-
-					//
-					// Add the molecule to the next level queue; this depends on the level
-					//
-					This->HandleNewMolecules(This->level_queues[level + 1],
-						&This->queue_locks[level + 1],
-						This->filters[level + 1],
-						newEdges);
-				}
-
-				// We have successfully processed this molecule;
-				// kill unneeded items in the molecule class.
-				// Elements will persist in the MinimalMolecule representation
-				// in the hypergraph.
-				delete molToProcess;
-			}
-		}
-	}
-
-	// Indicate this level is complete.
-	*thisLevelComplete = true;
-
-	// Zip the smi file.
-	//if (m == Options::SMI_LEVEL_BOUND + 1) This->writer->IndicateSMIwritingComplete();
-
-	// We are done with this level so kill all references to it in the hypergraph.
-	std::cerr << "Killing level " << (m - 1) << std::endl;
-	if (m > 2) args->graph->killLevel(m - 1);
-
-	std::cerr << "Level " << (m - 1) << " created "
-		<< This->moleculeLevelCount[m - 1] << " molecules." << std::endl;
-
-	std::cerr << "Level " << m << " complete." << std::endl;
-
-	return 0;
-}
-
-
-//
-// Threaded construction of the hypergraph using a hierarchical list of threads and containers.
-// We first construct the base case of 2-Molecules.
-// Then, we inductively start constructing 3-Molecules, 4-Molecules, etc.
-//
-MoleculeHashHypergraph* Instantiator::ThreadedInstantiate(std::vector<Linker*>& linkers,
-	std::vector<Brick*>& bricks)
-{
-	InitializeSynthesis(linkers, bricks);
-
-	// 1-Molecules and 2-Molecules have been processed.
-	completed_level[0] = true;
-	completed_level[1] = true;
-	completed_level[2] = true;
-
-	// Indicate size of 1-M and 2-M lists
-	moleculeLevelCount[1] = baseMolecules.size();
-
-	//
-	// For each level, start a thread and compose the elements with the base set of molecules.
-	//
-	for (unsigned m = 3; m <= Options::USER_DEFINED_LEVEL_BOUND; m++)
-	{
-		if (~pthread_create(&queue_threads[m], NULL, ProcessLevel, (void*)&arg_pointer[m]))
-		{
-			if (g_debug_output) { std::cout << "Level " << m << " thread created" << std::endl; }
-		}
-		else
-		{
-			if (g_debug_output) { std::cout << "Level " << m << " creation failed" << std::endl; }
-		}
-	}
-	for (unsigned m = 3; m <= Options::USER_DEFINED_LEVEL_BOUND; m++)
-	{
-		(void)pthread_join(queue_threads[m], NULL);
-		if (g_debug_output) std::cout << "Level " << m << " thread removed" << std::endl;
-	}
-
-	std::cout << "Level\t" << "# Molecules" << std::endl;
-	for (unsigned m = 1; m <= Options::USER_DEFINED_LEVEL_BOUND; m++)
-	{
-		std::cout << m << "\t" << moleculeLevelCount[m] << std::endl;
-	}
-
-	// Tell the output engine we have completed synthesis.
-	// This function then spins until the thread pool is complete. 
-	this->writer->IndicateSynthesisComplete();
-
-	return graph;
 }
