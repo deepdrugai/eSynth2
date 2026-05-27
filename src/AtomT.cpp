@@ -66,6 +66,8 @@ AtomEnumT AtomT::convertToAtomEnum(const std::string& s)
 
 SpecialEnumT AtomT::convertToSpecialEnum(const std::string& s)
 {
+    if (s.empty()) return SPECIAL_T_NONE;
+
     //
     // Force the contents to be lower case
     //

@@ -58,7 +58,7 @@ IdFactory Molecule::connectionIdMaker(100);
 static const unsigned int NO_CONNECTION = -1;
 
 
-Molecule::Molecule() : fragmentCounter(0)
+Molecule::Molecule() : fragmentCounter{0}, _numOccurrencesForUnique{1}
 {}
 
 //
@@ -89,7 +89,8 @@ Molecule::~Molecule()
 Molecule::Molecule(OpenBabel::OBMol* mol, const std::string& theSMI) :
     uniqueIndexID(-1),
     fingerprint(0),  
-    fragmentCounter(0)
+    fragmentCounter(0),
+    _numOccurrencesForUnique(1)
 {
     // Create the initial atom / bond data based on obmol.
     localizeOBMol(mol);
@@ -252,17 +253,6 @@ void Molecule::localizeOBMol(OpenBabel::OBMol* obmol)
 {
     //int numOfAtoms = obmol->NumAtoms();
     int numOfBonds = obmol->NumBonds();
-
-    //
-    // Translate the OB atoms into our local atoms; create the space here and
-    // then overwrite during parsing.
-    //
-/*
-    for(int x = 0; x < numOfAtoms; x++)
-    {
-        this->atoms.push_back(Atom());
-    }
-*/
 
     //
     // Translate the OB Bonds into our local bonds.

@@ -233,7 +233,7 @@ void CleanDirectory(const std::string& theDir)
         struct dirent *next_file;
         DIR *theFolder;
 
-        char filepath[256];
+        char filepath[512];
 
         theFolder = opendir(theDir.c_str());
 

@@ -25,6 +25,7 @@
 #include "Brick.h"
 #include "Utilities.h"
 #include "BrickConnectableAtom.h"
+#include "Options.h"
 
 Brick::Brick(OpenBabel::OBMol *obmol, const std::string &name) : Molecule(obmol, name)
 {
@@ -37,8 +38,6 @@ Brick::Brick(OpenBabel::OBMol *obmol, const std::string &name) : Molecule(obmol,
     std::string commentStr = comment->GetData();
 
     parseAppendix(commentStr, obmol->NumAtoms());
-
-    // if (Options::OPENBABEL) OBWriter::ScrubAndConvertToSMIInternal(obmol, this->smi);
 }
 
 void Brick::parseAppendix(std::string &suffix, int numAtoms)
@@ -50,8 +49,8 @@ void Brick::parseAppendix(std::string &suffix, int numAtoms)
     //
     // Read until we get "> <"
     //
-
-    while (line.find("> <ATOMTYPES") == std::string::npos && line.find(">  <ATOMTYPES") == std::string::npos)
+    while (line.find("> <ATOMTYPES") == std::string::npos &&
+           line.find(">  <ATOMTYPES") == std::string::npos)
     {
         getline(suffStream, line);
         if (line == "$$$$")
@@ -78,7 +77,9 @@ void Brick::parseAppendix(std::string &suffix, int numAtoms)
     //
     // Read until we get "> <"
     //
-    while (line.find("> <BRANCH") == std::string::npos && line.find(">  <ATOM_NUMBER") == std::string::npos && line.find("> <ATOM_NUMBER") == std::string::npos)
+    while (line.find("> <BRANCH") == std::string::npos &&
+           line.find(">  <ATOM_NUMBER") == std::string::npos &&
+           line.find("> <ATOM_NUMBER") == std::string::npos)
     {
         getline(suffStream, line);
         if (line == "$$$$")
@@ -91,61 +92,61 @@ void Brick::parseAppendix(std::string &suffix, int numAtoms)
     //
     // Read Branches
     //
-
-    if (!atomTypes.empty())
-    {
-        // Parallels the atom arrays
-        std::vector<std::string> *conns = new std::vector<std::string>[atomTypes.size()];
-
-        //
-        // @Magesh: Check that the atomTypes list is non-empty
-        //
-
-        int atomId = -1;
-        while (!isspace(suffStream.peek()))
-        {
-            suffStream >> atomId;
-
-            while (suffStream.peek() != '\n' && suffStream.peek() != '\r')
-            {
-                suffStream >> atomType;
-
-                conns[atomId - 1].push_back(atomType);
-
-                eatWhiteToNewLineOrChar(suffStream);
-            }
-
-            // Get the newline
-            suffStream.get();
-        }
-
-        //
-        // Read through the $$$$
-        //
-        while (line.find("$$$$") == std::string::npos)
-        {
-            getline(suffStream, line);
-        }
-
-        //
-        // Actually create the atoms for this molecule.
-        //
-        for (int a = 0; a < numAtoms; a++)
-        {
-            if (conns[a].empty())
-                this->atoms.push_back(new Atom(atomTypes[a]));
-            else
-            {
-                this->atoms.push_back(new BrickConnectableAtom(atomTypes[a], this, conns[a]));
-                conns[a].clear();
-            }
-        }
-
-        delete[] conns;
-    }
-    else
+    if (atomTypes.empty())
     {
         valid = false;
         return;
     }
+
+    // Parallels the atom arrays
+    std::vector<std::string> *conns = new std::vector<std::string>[atomTypes.size()];
+
+    int atomId = -1;
+    while (!isspace(suffStream.peek()))
+    {
+        suffStream >> atomId;
+
+        while (suffStream.peek() != '\n' && suffStream.peek() != '\r')
+        {
+            suffStream >> atomType;
+
+            conns[atomId - 1].push_back(atomType);
+
+            eatWhiteToNewLineOrChar(suffStream);
+        }
+
+        // Get the newline
+        suffStream.get();
+    }
+
+    // If this is a 'merged' fragment, identify how many occurences
+    // are required for complete, unique reconstruction
+    if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD)
+    {
+        _numOccurrencesForUnique = parseSimilarFragments(suffStream) + 1; // 1 for this fragment
+    }
+
+    //
+    // Read through the $$$$
+    //
+    while (line.find("$$$$") == std::string::npos)
+    {
+        getline(suffStream, line);
+    }
+
+    //
+    // Actually create the atoms for this molecule.
+    //
+    for (int a = 0; a < numAtoms; a++)
+    {
+        if (conns[a].empty())
+            this->atoms.push_back(new Atom(atomTypes[a]));
+        else
+        {
+            this->atoms.push_back(new BrickConnectableAtom(atomTypes[a], this, conns[a]));
+            conns[a].clear();
+        }
+    }
+
+    delete[] conns;
 }

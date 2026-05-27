@@ -16,6 +16,7 @@
  */
 
 #include <vector>
+#include <map>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -71,8 +72,13 @@
 // Global set of linkers and bricks read from the input files.
 //
 
-void Cleanup(const std::vector<Linker *> &linkers,
-			 const std::vector<Brick *> &bricks);
+void Cleanup(const std::vector<Brick *> &bricks,
+             const std::vector<Linker *> &linkers);
+
+bool shortCircuitUniqueBuild(const std::vector<Brick*>& bricks,
+                             const std::vector<Linker*>& linkers);
+
+void reportBuild(const std::map<std::string, Molecule*>& file_mol_map);
 
 int main(int argc, const char **argv)
 {
@@ -138,14 +144,16 @@ void readMoleculeFile(const char* fileName, Constants::FRAGMENT_TYPE fType)
 	bricks = inf.getBricks();
 	linkers = inf.getLinkers();
 
-    // When we only are interested in unique fragment construction,
-	// we can short circuit all other operations.
-    if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD && bricks.size() + linkers.size() == 1)
+    // Is the input one fragment with one occurrence
+    if (shortCircuitUniqueBuild(bricks, linkers))
 	{
-	   std::cerr << "Single fragment specified; unique fragment-based construction will not execute."
-	             << std::endl;
-       return 0;
+        std::cerr << "Single fragment specified with 1 occurrence;" << std::endl
+		          << "unique fragment-based construction will not execute."
+	              << std::endl;
+		return 0;
 	}
+
+    if (Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD) reportBuild(inf.getFileMoleculeMap());
 
 	// Output object for the nodes of the hypergraph.
 	OBWriter* writer = new OBWriter();
@@ -167,21 +175,58 @@ void readMoleculeFile(const char* fileName, Constants::FRAGMENT_TYPE fType)
 
 	delete writer;
 
-	Cleanup(linkers, bricks);
+	Cleanup(bricks, linkers);
 	std::cerr << "Exiting." << std::endl;
 
 	return 0;
 }
 
-void Cleanup(const std::vector<Linker *> &linkers, const std::vector<Brick *> &bricks)
+void Cleanup(const std::vector<Brick*>& bricks, const std::vector<Linker*>& linkers)
 {
-	for (unsigned ell = 0; ell < linkers.size(); ell++)
-	{
-		delete linkers[ell];
-	}
-
 	for (unsigned r = 0; r < bricks.size(); r++)
 	{
 		delete bricks[r];
+	}
+
+    for (unsigned ell = 0; ell < linkers.size(); ell++)
+	{
+		delete linkers[ell];
+	}
+}
+
+// When we only are interested in unique fragment construction,
+// we can short circuit all other operations.
+bool shortCircuitUniqueBuild(const std::vector<Brick*>& bricks,
+                             const std::vector<Linker*>& linkers)
+{
+	// If this is not a unique build, this logic does not apply
+	if (!Options::ONLY_USE_UNIQUE_FRAGMENTS_TO_BUILD) return false;
+
+    // Do we have more than one fragment?
+    if (bricks.size() + linkers.size() != 1) return false;
+
+    // Do we have just one fragment, but many occurrences?
+	unsigned short int occurrences = 0;
+	occurrences += bricks.empty() ? 0 : bricks[0]->getNumOccurrencesForUniqueBuild();
+	occurrences += linkers.empty() ? 0 : linkers[0]->getNumOccurrencesForUniqueBuild();
+
+    if (occurrences == 0)
+	    std::cerr << "Something went wrong with number of occurrences for unique build;" << std::endl
+		          << "Number of occurrences is 0." << std::endl;
+
+    return occurrences <= 1;
+}
+
+// When we only are interested in unique fragment construction,
+// we can short circuit all other operations.
+void reportBuild(const std::map<std::string, Molecule*>& file_mol_map)
+{
+	std::cout << "For a unique build, we will use the following fragments the specified number of times:"
+	          << std::endl;
+    for (std::map<std::string, Molecule*>::const_iterator it = file_mol_map.begin();
+	     it != file_mol_map.end();
+		 it++)
+	{
+        std::cout << it->first << "\t" << it->second->getNumOccurrencesForUniqueBuild() << std::endl;
 	}
 }

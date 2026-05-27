@@ -23,6 +23,7 @@
 #include <vector>
 #include <memory>
 #include <map>
+#include <sstream>
 
 #include <openbabel/mol.h>
 
@@ -60,20 +61,8 @@ public:
   virtual bool IsComplex() const { return !this->IsLinker() && !this->IsBrick(); }
   virtual bool IsBrick() const { return false; }
 
-  // bool isLipinskiCompliant() const;
-  double getMolWt() const { return MolWt; }
-  double getHBD() const { return HBD; }
-  double getHBA1() const { return HBA1; }
-  double getlogP() const { return logP; }
-
   int getNumberOfAtoms() const { return this->atoms.size(); }
   int getNumberOfBonds() const { return this->bonds.size(); }
-
-  bool hasFragment(int uniqueId) const { return this->fragmentCounter[uniqueId] != 0; }
-
-  // OpenBabel::OBMol* getOpenBabelMol() const { return obmol; }
-  // void getSMI(std::string& s) const { s = smi; }
-  // void setSMI(std::string that) { smi = that; }
 
   SimpleFragmentGraph *getFingerprint() const;
 
@@ -99,9 +88,6 @@ public:
   // Initialize any containers to track fragments (linkers / rigids)
   void initFragmentDevices();
 
-  // Calculate the number of linkers / rigids (copies and unique)
-  // void calcFragmentInfo();
-
   // Initialize the fragment container
   void initFragmentInfo();
 
@@ -116,6 +102,10 @@ public:
   static unsigned int NUM_UNIQUE_FRAGMENTS;
 
   void WriteToOpenBabelFormat(std::string &) const;
+
+  bool hasFragment(int uniqueId) const { return this->fragmentCounter[uniqueId] != 0; }
+  bool numFragmentsOf(int uniqueId) const { return this->fragmentCounter[uniqueId]; }
+  unsigned short int getNumOccurrencesForUniqueBuild() const { return _numOccurrencesForUnique; }
 
   // CTA: 6/2024
   void printConstituentFragments() const
@@ -133,6 +123,7 @@ public:
 
     return true;
   }
+  
 
   //
   /////////////////////////////////////////////////////////////////////////
@@ -146,23 +137,19 @@ protected:
   unsigned int uniqueIndexID;
 
   // Local atoms and bonds
-  std::vector<Atom *> atoms;
+  std::vector<Atom*> atoms;
   std::vector<Bond> bonds;
 
   // Used for molecular comparison; the molecule represented as a graph
   SimpleFragmentGraph *fingerprint;
 
   // An array used to count the number of each specific linker /
-  // rigid in this molecule
+  // brick in this molecule
   unsigned short int *fragmentCounter;
 
-  //
-  // Lipinski Descriptors
-  //
-  double MolWt;
-  double HBD;
-  double HBA1;
-  double logP;
+  // If we perform a unique construction of molecules, how many copies
+  // of this fragment must we include; default is 1
+  unsigned short int _numOccurrencesForUnique;
 
   //
   // Statics
@@ -172,12 +159,55 @@ protected:
   // we create unique ids for those connections.
   static IdFactory connectionIdMaker;
 
-  //
-  // Inline functions
-  //
   virtual void parseAppendix(std::string &comment, int numAtoms = 0)
   {
     std::cerr << "Called Wrong parseAppendix::MOLECULE" << std::endl;
+  }
+
+  // TODO
+  // If this is a 'merged' fragment, identify how many occurences
+  // are required for complete, unique reconstruction
+  // set : this->_numOccurencesForUnique
+  int parseSimilarFragments(std::stringstream& suffStream) const
+  {
+    //
+    // Read until we get "> <"
+    //
+    std::string line = "";
+    while (line.find("> <SIMILAR_FRAGMENTS>") == std::string::npos &&
+           line.find(">  <SIMILAR_FRAGMENTS>") == std::string::npos)
+    {
+        getline(suffStream, line);
+    }
+
+    int numSimilarFragments = 0;
+    while (!isspace(suffStream.peek()))
+    {
+      std::string similar;
+      while (suffStream.peek() != '\n' && suffStream.peek() != '\r')
+      {
+        suffStream >> similar;
+
+        // Error check that these are bricks
+        if (similar.substr(similar.length() - 3) != "sdf")
+        {
+          std::cout << "Similar fragment " << similar << " not specified as sdf" << std::endl;
+        }
+        else
+        {
+          std::cout << "Similar fragment " << similar << " found." << std::endl;
+          numSimilarFragments++;
+        }
+
+        eatWhiteToNewLineOrChar(suffStream);
+      }
+      
+      // Get the newline
+      suffStream.get();
+    }
+
+    // Return 0 unless we are told they are using merged fragments
+    return Options::MERGED_FRAGMENTS_TO_BUILD ? numSimilarFragments : 0;
   }
 
   //
