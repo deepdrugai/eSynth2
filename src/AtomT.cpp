@@ -24,6 +24,7 @@
 
 
 #include "AtomT.h"
+#include "Options.h"
 
 
 AtomT::AtomT(const AtomT* const that)
@@ -147,6 +148,11 @@ AtomT::AtomT(const std::string& in)
 bool AtomT::operator==(const AtomT& that) const
 {
     if (this->theAtomT.atomType != that.theAtomT.atomType) return false;
+
+    // CTA: 9 /2024
+    // If we are only interested in generating molecules based on loose atomtype.
+    // That is, we ignore atom type specialization and focus on strict atomic element
+    if (Options::LOOSE_ATOMTYPE_GENERATION) return true;
 
     if (this->theAtomT.specificNum != that.theAtomT.specificNum) return false;
 

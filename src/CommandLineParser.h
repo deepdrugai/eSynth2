@@ -314,6 +314,11 @@ private:
             Options::setMergedFragmentsToBuild();
             _runtimeArgs[Constants::CMD_MERGED_FRAGMENTS_TO_BUILD] = "";
         }
+        else if (arg == Constants::CMD_LOOSE_ATOMTYPE_GENERATION)
+        {
+            Options::setLooseGeneration();
+            _runtimeArgs[Constants::CMD_LOOSE_ATOMTYPE_GENERATION] = "";
+        }
 
         //
         // Paired arguments
